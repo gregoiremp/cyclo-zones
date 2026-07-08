@@ -112,6 +112,38 @@
   table{width:100%; border-collapse:collapse; font-size:0.82rem;}
   th,td{text-align:left; padding:6px 8px; border-bottom:1px solid var(--border);}
   th{color:var(--muted); font-weight:700; font-size:0.72rem; text-transform:uppercase;}
+
+  .tabs{display:flex; gap:6px; margin-bottom:14px;}
+  .tab-btn{
+    background:#e9ecf4; color:var(--muted); border:none; border-radius:10px; padding:10px 16px;
+    font-weight:700; font-size:0.85rem; cursor:pointer;
+  }
+  .tab-btn.active{background:var(--accent); color:white;}
+
+  .dropzone{
+    border:2px dashed var(--border); border-radius:14px; padding:34px 20px; text-align:center;
+    color:var(--muted); cursor:pointer; transition:border-color .15s, background .15s; font-size:0.88rem;
+  }
+  .dropzone.drag{border-color:var(--accent); background:var(--accent-light); color:#1d4ed8;}
+  .dropzone b{color:var(--text);}
+
+  .reco-box{
+    background:var(--accent-light); border:1px solid #c7dbff; border-radius:12px; padding:16px 18px;
+    font-size:0.92rem; line-height:1.65; color:#1d4ed8;
+  }
+  .reco-box b{color:#0f172a;}
+  .reco-box .reco-title{font-size:0.78rem; text-transform:uppercase; letter-spacing:0.05em; font-weight:700; color:#1d4ed8; margin-bottom:6px;}
+
+  .profile-recap{display:flex; flex-wrap:wrap; gap:16px; font-size:0.82rem; color:var(--muted); margin-bottom:10px;}
+  .profile-recap b{color:var(--text);}
+
+  .zone-time-bar{display:flex; height:28px; border-radius:8px; overflow:hidden; margin-top:6px; font-size:0.7rem;}
+  .zone-time-bar div{display:flex; align-items:center; justify-content:center; color:white; font-weight:700; white-space:nowrap; overflow:hidden;}
+
+  .warn-note{
+    background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; padding:10px 14px; border-radius:10px;
+    font-size:0.82rem; margin-top:10px; line-height:1.5;
+  }
 </style>
 </head>
 <body>
@@ -119,9 +151,16 @@
 <div class="top">
   <div>
     <h1>🚴 Test de niveau — Vélo</h1>
-    <div class="subtitle">Dashboard live pour estimer les capacités à l'effort</div>
+    <div class="subtitle">Dashboard live + analyse post-test pour estimer les capacités à l'effort</div>
   </div>
 </div>
+
+<div class="tabs">
+  <button class="tab-btn active" id="tabBtnTest">🚴 Test live</button>
+  <button class="tab-btn" id="tabBtnAnalysis">📊 Analyse d'un CSV</button>
+</div>
+
+<div id="viewTest">
 <div class="banner">
   ⚠️ Outil de suivi et d'enregistrement de données, pas un dispositif médical. Un test d'effort doit rester
   supervisé par une personne attentive à l'état du testé ; en cas de douleur thoracique, vertige ou malaise,
@@ -263,6 +302,62 @@
     </div>
   </div>
 </div>
+</div><!-- /viewTest -->
+
+<div id="viewAnalysis" class="hidden">
+  <div class="banner">
+    ⚠️ Analyse à but purement indicatif — repères d'entraînement généraux (zones FC classiques), pas de
+    diagnostic ni d'estimation clinique (pas de VO2max). Pour toute question de santé, consulte un professionnel.
+  </div>
+
+  <div class="card">
+    <h2>Charger un CSV exporté</h2>
+    <div class="dropzone" id="dropzone">
+      <div><b>Clique pour choisir un fichier</b> ou dépose-le ici</div>
+      <div class="hint" style="margin-top:6px;">Le CSV exporté par l'onglet "Test live" ci-contre (sections PROFIL / DONNEES / EVENEMENTS).</div>
+      <input type="file" id="csvFile" accept=".csv,text/csv" style="display:none;">
+    </div>
+    <div id="analysisFileInfo" class="hint hidden" style="margin-top:8px;"></div>
+  </div>
+
+  <div id="manualProfileCard" class="card hidden">
+    <h2>Profil manquant dans le CSV</h2>
+    <div class="hint">Ce fichier ne contient pas (ou pas totalement) la section PROFIL — renseigne ces valeurs pour calculer les zones FC correctement.</div>
+    <div class="row">
+      <div><label>FC max</label><input type="number" id="anProfHrmax" value="155" min="80" max="230"></div>
+      <div><label>FC repos (optionnel)</label><input type="number" id="anProfHrrest" value="" min="30" max="120" placeholder="bpm"></div>
+    </div>
+    <button class="btn-primary" id="btnRecompute" style="margin-top:10px;">↻ Recalculer l'analyse</button>
+  </div>
+
+  <div id="analysisResults" class="hidden">
+    <div class="card">
+      <h2>Profil du test analysé</h2>
+      <div class="profile-recap" id="analysisProfileRecap"></div>
+    </div>
+
+    <div class="card">
+      <h2>Recommandation d'entraînement</h2>
+      <div class="reco-box" id="recoBox"></div>
+      <div id="recoWarnBox"></div>
+    </div>
+
+    <div class="card">
+      <h2>Temps passé par zone FC (sur toute la durée du test)</h2>
+      <div class="zone-time-bar" id="zoneTimeBar"></div>
+      <div class="hint" id="zoneTimeLegend" style="margin-top:8px;"></div>
+    </div>
+
+    <div class="chart-wrap">
+      <canvas id="analysisChart"></canvas>
+    </div>
+
+    <div class="card">
+      <h2>Détail par palier</h2>
+      <table id="analysisTable"></table>
+    </div>
+  </div>
+</div><!-- /viewAnalysis -->
 
 <script>
 (function(){
@@ -637,6 +732,349 @@
   // init
   resInput.value = targetResistance(1, Number(numStagesInput.value||1));
   refreshStagePanel();
+
+  // ==================================================================
+  // ---------- Onglets ----------
+  // ==================================================================
+  el('tabBtnTest').addEventListener('click', () => switchView('test'));
+  el('tabBtnAnalysis').addEventListener('click', () => switchView('analysis'));
+  function switchView(name){
+    const isTest = name === 'test';
+    el('viewTest').classList.toggle('hidden', !isTest);
+    el('viewAnalysis').classList.toggle('hidden', isTest);
+    el('tabBtnTest').classList.toggle('active', isTest);
+    el('tabBtnAnalysis').classList.toggle('active', !isTest);
+  }
+
+  // ==================================================================
+  // ---------- Analyse post-test (CSV) ----------
+  // ==================================================================
+  let lastParsedCSV = null;
+
+  const dropzone = el('dropzone'), csvFileInput = el('csvFile');
+  dropzone.addEventListener('click', () => csvFileInput.click());
+  dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag'); });
+  dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
+  dropzone.addEventListener('drop', e => {
+    e.preventDefault(); dropzone.classList.remove('drag');
+    if (e.dataTransfer.files.length) handleCSVFile(e.dataTransfer.files[0]);
+  });
+  csvFileInput.addEventListener('change', () => {
+    if (csvFileInput.files.length) handleCSVFile(csvFileInput.files[0]);
+  });
+  el('btnRecompute').addEventListener('click', () => { if (lastParsedCSV) runAnalysis(lastParsedCSV); });
+
+  function handleCSVFile(file){
+    const reader = new FileReader();
+    reader.onload = () => {
+      el('analysisFileInfo').classList.remove('hidden');
+      el('analysisFileInfo').textContent = 'Fichier chargé : ' + file.name;
+      lastParsedCSV = parseExportedCSV(reader.result);
+      runAnalysis(lastParsedCSV);
+    };
+    reader.onerror = () => alert('Impossible de lire ce fichier.');
+    reader.readAsText(file, 'utf-8');
+  }
+
+  // ---- Parsing ----
+  function parseCSVLine(line){
+    const result = []; let cur = ''; let inQuotes = false;
+    for (let i=0;i<line.length;i++){
+      const c = line[i];
+      if (inQuotes){
+        if (c === '"'){ if (line[i+1] === '"'){ cur += '"'; i++; } else { inQuotes = false; } }
+        else cur += c;
+      } else {
+        if (c === '"') inQuotes = true;
+        else if (c === ',') { result.push(cur); cur = ''; }
+        else cur += c;
+      }
+    }
+    result.push(cur);
+    return result;
+  }
+
+  function parseExportedCSV(text){
+    const lines = text.split(/\r?\n/);
+    let section = null;
+    const profile = {};
+    let dataHeader = null, dataRows = [];
+    let eventHeader = null, eventRows = [];
+    for (const raw of lines){
+      const trimmed = raw.trim();
+      if (trimmed === '') continue;
+      if (trimmed === 'PROFIL'){ section = 'PROFIL'; continue; }
+      if (trimmed === 'DONNEES'){ section = 'DONNEES'; dataHeader = null; continue; }
+      if (trimmed === 'EVENEMENTS'){ section = 'EVENEMENTS'; eventHeader = null; continue; }
+      if (section === 'PROFIL'){
+        const idx = raw.indexOf(',');
+        if (idx < 0) continue;
+        profile[raw.slice(0, idx).trim()] = raw.slice(idx + 1).trim();
+      } else if (section === 'DONNEES'){
+        if (!dataHeader){ dataHeader = parseCSVLine(raw).map(h => h.trim()); continue; }
+        const cols = parseCSVLine(raw);
+        const row = {};
+        dataHeader.forEach((h,i) => row[h] = cols[i] !== undefined ? cols[i].trim() : '');
+        dataRows.push(row);
+      } else if (section === 'EVENEMENTS'){
+        if (!eventHeader){ eventHeader = parseCSVLine(raw).map(h => h.trim()); continue; }
+        const cols = parseCSVLine(raw);
+        const row = {};
+        eventHeader.forEach((h,i) => row[h] = cols[i] !== undefined ? cols[i].trim() : '');
+        eventRows.push(row);
+      } else if (!dataHeader && trimmed.startsWith('temps_s')){
+        // CSV sans marqueurs de section (ancien format) : ce qu'on lit est déjà l'entête DONNEES
+        section = 'DONNEES';
+        dataHeader = parseCSVLine(raw).map(h => h.trim());
+      }
+    }
+    return { profile, dataHeader: dataHeader || [], dataRows, eventHeader: eventHeader || [], eventRows };
+  }
+
+  // ---- Zones (paramétrées par un profil quelconque, pas forcément celui du formulaire live) ----
+  function zoneForHR(hr, hrmax, hrrest){
+    let pct;
+    if (hrrest > 0 && hrmax > hrrest) pct = (hr - hrrest) / (hrmax - hrrest);
+    else pct = hr / hrmax;
+    for (let i = zones.length - 1; i >= 0; i--){ if (pct >= zones[i].min) return zones[i]; }
+    return zones[0];
+  }
+
+  function runAnalysis(parsed){
+    const { profile, dataRows } = parsed;
+
+    if (!dataRows.length){
+      el('analysisResults').classList.add('hidden');
+      el('manualProfileCard').classList.add('hidden');
+      alert("Ce CSV ne contient pas de données exploitables (section DONNEES vide ou introuvable).");
+      return;
+    }
+
+    let hrmax = Number(profile.fc_max);
+    let hrrest = Number(profile.fc_repos || 0);
+    const profileIncomplete = !hrmax || isNaN(hrmax);
+    if (profileIncomplete){
+      el('manualProfileCard').classList.remove('hidden');
+      hrmax = Number(el('anProfHrmax').value || 155);
+      hrrest = Number(el('anProfHrrest').value || 0);
+    } else {
+      el('manualProfileCard').classList.add('hidden');
+    }
+
+    // Lignes typées
+    const rows = dataRows.map(r => ({
+      t: Number(r.temps_s),
+      stage: Number(r.palier),
+      hr: r.fc_bpm !== undefined && r.fc_bpm !== '' ? Number(r.fc_bpm) : null,
+      cad: r.cadence_rpm !== undefined && r.cadence_rpm !== '' ? Number(r.cadence_rpm) : null,
+      speed: r.vitesse_kmh !== undefined && r.vitesse_kmh !== '' ? Number(r.vitesse_kmh) : null,
+      resistance: r.resistance !== undefined && r.resistance !== '' ? Number(r.resistance) : null,
+      rpe: r.rpe !== undefined && r.rpe !== '' ? Number(r.rpe) : null,
+      zone: r.zone && r.zone.trim() ? r.zone.trim() : null,
+    })).filter(r => !isNaN(r.t) && !isNaN(r.stage));
+
+    const hasHR = rows.some(r => r.hr != null);
+    if (!hasHR){
+      el('analysisResults').classList.add('hidden');
+      alert("Ce CSV n'a pas de données de fréquence cardiaque (test probablement fait sans capteur FC connecté) — refais le test avec les capteurs branchés pour une analyse exploitable.");
+      return;
+    }
+
+    // Zone par ligne (recalculée si absente)
+    rows.forEach(r => { if (!r.zone && r.hr != null) r.zone = zoneForHR(r.hr, hrmax, hrrest).name; });
+
+    // Agrégation par palier
+    const stageMap = {};
+    rows.forEach(r => {
+      if (!stageMap[r.stage]) stageMap[r.stage] = { stage: r.stage, hr: [], cad: [], speed: [], res: [], rpe: null, n: 0 };
+      const s = stageMap[r.stage];
+      s.n++;
+      if (r.hr != null) s.hr.push(r.hr);
+      if (r.cad != null) s.cad.push(r.cad);
+      if (r.speed != null) s.speed.push(r.speed);
+      if (r.resistance != null) s.res.push(r.resistance);
+      if (r.rpe != null) s.rpe = r.rpe; // dernier RPE déclaré du palier
+    });
+    const avg = arr => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : null;
+    const max = arr => arr.length ? Math.max(...arr) : null;
+    const stages = Object.values(stageMap).sort((a,b)=>a.stage-b.stage).map(s => {
+      const avgHR = avg(s.hr);
+      return {
+        stage: s.stage,
+        avgHR, maxHR: max(s.hr),
+        avgCad: avg(s.cad),
+        avgSpeed: avg(s.speed),
+        lastRes: s.res.length ? s.res[s.res.length-1] : null,
+        rpe: s.rpe,
+        durationSec: s.n,
+        zone: avgHR != null ? zoneForHR(avgHR, hrmax, hrrest) : null,
+      };
+    });
+
+    // Détection du palier de bascule ("seuil")
+    let thresholdStage = null, thresholdReason = '';
+    const zi = z => z ? zones.findIndex(zz => zz.name === z.name) : -1;
+    for (let i=1;i<stages.length;i++){
+      const prev = stages[i-1], cur = stages[i];
+      if (zi(cur.zone) >= 3 && zi(prev.zone) < 3){ // entrée en Z4/Z5
+        thresholdStage = cur; thresholdReason = 'passage en ' + cur.zone.full + ', FC ' + Math.round(cur.avgHR) + ' bpm'; break;
+      }
+    }
+    if (!thresholdStage){
+      // fallback : plus forte hausse de FC pour la plus faible hausse de production (vitesse ou résistance)
+      let bestRatio = -Infinity, bestIdx = -1;
+      for (let i=1;i<stages.length;i++){
+        const prev = stages[i-1], cur = stages[i];
+        if (prev.avgHR == null || cur.avgHR == null) continue;
+        const dHR = cur.avgHR - prev.avgHR;
+        let dOut;
+        if (prev.avgSpeed != null && cur.avgSpeed != null) dOut = cur.avgSpeed - prev.avgSpeed;
+        else if (prev.lastRes != null && cur.lastRes != null) dOut = cur.lastRes - prev.lastRes;
+        else continue;
+        if (dOut <= 0) continue;
+        const ratio = dHR / dOut;
+        if (ratio > bestRatio){ bestRatio = ratio; bestIdx = i; }
+      }
+      if (bestIdx >= 0){
+        thresholdStage = stages[bestIdx];
+        thresholdReason = "hausse de FC disproportionnée par rapport à l'effort produit (estimation, à confirmer avec un test plus progressif)";
+      }
+    }
+
+    // Incohérences FC/RPE
+    const incoherences = [];
+    stages.forEach(s => {
+      if (s.rpe == null || !s.zone) return;
+      const idx = zi(s.zone);
+      if (s.rpe <= 4 && idx >= 3) incoherences.push('Palier ' + s.stage + ' : RPE faible (' + s.rpe + '/10) alors que la FC indique ' + s.zone.name + ' — à vérifier.');
+      if (s.rpe >= 8 && idx <= 1) incoherences.push('Palier ' + s.stage + ' : RPE élevé (' + s.rpe + '/10) alors que la FC indique ' + s.zone.name + ' — à vérifier.');
+    });
+
+    // Recommandation Z2 (endurance)
+    let recoHtml = '';
+    const z2Stages = stages.filter(s => s.zone && s.zone.name === 'Z2');
+    if (z2Stages.length){
+      const speeds = z2Stages.map(s=>s.avgSpeed).filter(v=>v!=null);
+      const cads = z2Stages.map(s=>s.avgCad).filter(v=>v!=null);
+      const hrs = z2Stages.map(s=>s.avgHR);
+      recoHtml = '<div class="reco-title">Cible zone d\'endurance (Z2)</div>' +
+        '<div>D\'après le(s) palier(s) ' + z2Stages.map(s=>s.stage).join(', ') + ', mesuré(s) directement en Z2 :</div>' +
+        '<div style="margin-top:8px;">' +
+        (speeds.length ? '🚴 Vitesse : <b>' + Math.round(Math.min(...speeds)) + '–' + Math.round(Math.max(...speeds)) + ' km/h</b><br>' : '') +
+        (cads.length ? '🔁 Cadence : <b>' + Math.round(Math.min(...cads)) + '–' + Math.round(Math.max(...cads)) + ' rpm</b><br>' : '') +
+        '❤️ FC : <b>' + Math.round(Math.min(...hrs)) + '–' + Math.round(Math.max(...hrs)) + ' bpm</b>' +
+        '</div>';
+    } else {
+      // interpolation entre les deux paliers qui encadrent la borne basse de Z2
+      const z2 = zones[1];
+      const hrLow = hrrest > 0 ? hrrest + z2.min*(hrmax-hrrest) : z2.min*hrmax;
+      const hrHigh = hrrest > 0 ? hrrest + z2.max*(hrmax-hrrest) : z2.max*hrmax;
+      const targetHR = (hrLow + hrHigh) / 2;
+      let bracket = null;
+      for (let i=1;i<stages.length;i++){
+        const prev = stages[i-1], cur = stages[i];
+        if (prev.avgHR == null || cur.avgHR == null) continue;
+        if ((prev.avgHR <= targetHR && cur.avgHR >= targetHR) || (prev.avgHR >= targetHR && cur.avgHR <= targetHR)){
+          bracket = {prev, cur}; break;
+        }
+      }
+      if (bracket && bracket.cur.avgHR !== bracket.prev.avgHR){
+        const frac = (targetHR - bracket.prev.avgHR) / (bracket.cur.avgHR - bracket.prev.avgHR);
+        const est = (a,b) => (a!=null && b!=null) ? (a + frac*(b-a)) : null;
+        const estSpeed = est(bracket.prev.avgSpeed, bracket.cur.avgSpeed);
+        const estCad = est(bracket.prev.avgCad, bracket.cur.avgCad);
+        recoHtml = '<div class="reco-title">Cible zone d\'endurance (Z2) — estimation</div>' +
+          '<div>Aucun palier n\'est tombé pile en Z2 ; estimation par interpolation entre le palier ' + bracket.prev.stage + ' et le palier ' + bracket.cur.stage + ' :</div>' +
+          '<div style="margin-top:8px;">' +
+          (estSpeed!=null ? '🚴 Vitesse estimée : <b>~' + Math.round(estSpeed) + ' km/h</b><br>' : '') +
+          (estCad!=null ? '🔁 Cadence estimée : <b>~' + Math.round(estCad) + ' rpm</b><br>' : '') +
+          '❤️ FC cible : <b>' + Math.round(hrLow) + '–' + Math.round(hrHigh) + ' bpm</b>' +
+          '</div>';
+      } else {
+        recoHtml = '<div class="reco-title">Cible zone d\'endurance (Z2)</div>' +
+          '<div>Pas assez de paliers autour de la zone d\'endurance dans ce test pour estimer une vitesse/cadence fiable. ' +
+          'Repère utilisable dès maintenant : viser une <b>FC de ' + Math.round(hrLow) + '–' + Math.round(hrHigh) + ' bpm</b> en sortie normale. ' +
+          'Pour affiner vitesse/cadence, refaire un test avec des paliers plus progressifs (résistance début/fin plus rapprochées, plus de paliers).</div>';
+      }
+    }
+    if (thresholdStage){
+      recoHtml += '<div style="margin-top:12px; padding-top:12px; border-top:1px solid #c7dbff;">' +
+        '⚠ <b>Palier de bascule détecté : Palier ' + thresholdStage.stage + '</b> (' + thresholdReason + '). ' +
+        'Au-delà de ce niveau d\'effort, on sort de l\'endurance pure — à éviter en sortie normale, réservé aux efforts ponctuels/courts.</div>';
+    }
+    el('recoBox').innerHTML = recoHtml;
+    el('recoWarnBox').innerHTML = incoherences.length
+      ? '<div class="warn-note">' + incoherences.map(t=>'⚠ ' + t).join('<br>') + '</div>' : '';
+
+    // Récap profil
+    const imc = profile.imc || '--';
+    el('analysisProfileRecap').innerHTML =
+      '<div>Âge : <b>' + (profile.age || '--') + '</b></div>' +
+      '<div>FC max : <b>' + hrmax + '</b>' + (profileIncomplete ? ' (saisie manuelle)' : '') + '</div>' +
+      '<div>FC repos : <b>' + (hrrest || '--') + '</b></div>' +
+      '<div>IMC : <b>' + imc + '</b></div>' +
+      '<div>Paliers : <b>' + stages.length + '</b></div>' +
+      '<div>Durée totale : <b>' + fmtTime(rows.length ? Math.max(...rows.map(r=>r.t)) : 0) + '</b></div>';
+
+    // Temps par zone (sur toutes les lignes avec FC)
+    const zoneCounts = {}; zones.forEach(z => zoneCounts[z.name] = 0);
+    let totalWithHR = 0;
+    rows.forEach(r => { if (r.zone && zoneCounts[r.zone] !== undefined){ zoneCounts[r.zone]++; totalWithHR++; } });
+    const barEl = el('zoneTimeBar'); barEl.innerHTML = '';
+    const legendParts = [];
+    zones.forEach(z => {
+      const pct = totalWithHR ? (zoneCounts[z.name]/totalWithHR*100) : 0;
+      if (pct > 0){
+        const seg = document.createElement('div');
+        seg.style.width = pct + '%'; seg.style.background = z.color;
+        seg.textContent = pct >= 8 ? z.name + ' ' + Math.round(pct) + '%' : '';
+        barEl.appendChild(seg);
+      }
+      legendParts.push('<span style="color:' + z.color + '; font-weight:700;">' + z.name + '</span> ' + fmtTime(zoneCounts[z.name]) + ' (' + Math.round(pct) + '%)');
+    });
+    el('zoneTimeLegend').innerHTML = legendParts.join(' &nbsp;·&nbsp; ');
+
+    // Tableau détaillé
+    let tableHtml = '<tr><th>Palier</th><th>FC moy.</th><th>FC max</th><th>Zone</th><th>Cadence moy.</th><th>Vitesse moy.</th><th>Résistance</th><th>RPE</th><th>Durée</th></tr>';
+    stages.forEach(s => {
+      const isThreshold = thresholdStage && s.stage === thresholdStage.stage;
+      tableHtml += '<tr' + (isThreshold ? ' style="background:#fff7ed;"' : '') + '>' +
+        '<td>' + s.stage + (isThreshold ? ' ⚠' : '') + '</td>' +
+        '<td>' + (s.avgHR!=null?Math.round(s.avgHR):'--') + '</td>' +
+        '<td>' + (s.maxHR!=null?s.maxHR:'--') + '</td>' +
+        '<td>' + (s.zone ? '<span style="color:' + s.zone.color + '; font-weight:700;">' + s.zone.name + '</span>' : '--') + '</td>' +
+        '<td>' + (s.avgCad!=null?Math.round(s.avgCad):'--') + '</td>' +
+        '<td>' + (s.avgSpeed!=null?s.avgSpeed.toFixed(1):'--') + '</td>' +
+        '<td>' + (s.lastRes!=null?s.lastRes:'--') + '</td>' +
+        '<td>' + (s.rpe!=null?s.rpe:'--') + '</td>' +
+        '<td>' + fmtTime(s.durationSec) + '</td></tr>';
+    });
+    el('analysisTable').innerHTML = tableHtml;
+
+    // Graphique
+    const labels = stages.map(s => 'Palier ' + s.stage + (thresholdStage && s.stage===thresholdStage.stage ? ' ⚠' : ''));
+    if (analysisChart) analysisChart.destroy();
+    analysisChart = new Chart(el('analysisChart').getContext('2d'), {
+      type: 'line',
+      data: { labels, datasets: [
+        {label:'FC moy. (bpm)', data: stages.map(s=>s.avgHR!=null?Math.round(s.avgHR):null), borderColor:'#ef4444', backgroundColor:'rgba(239,68,68,0.08)', yAxisID:'y', tension:0.2, borderWidth:2},
+        {label:'Cadence moy. (rpm)', data: stages.map(s=>s.avgCad), borderColor:'#2563eb', backgroundColor:'rgba(37,99,235,0.06)', yAxisID:'y1', tension:0.2, borderWidth:2},
+        {label:'Vitesse moy. (km/h)', data: stages.map(s=>s.avgSpeed), borderColor:'#16a34a', backgroundColor:'rgba(22,163,74,0.06)', yAxisID:'y1', tension:0.2, borderWidth:2},
+      ]},
+      options: {
+        responsive:true, interaction:{mode:'index', intersect:false},
+        scales:{
+          x:{ticks:{color:'#6b7280'}, grid:{color:'#eef1f7'}},
+          y:{position:'left', ticks:{color:'#ef4444'}, grid:{color:'#eef1f7'}},
+          y1:{position:'right', ticks:{color:'#2563eb'}, grid:{drawOnChartArea:false}},
+        },
+        plugins:{legend:{labels:{color:'#0f172a'}}}
+      }
+    });
+
+    el('analysisResults').classList.remove('hidden');
+  }
+  let analysisChart = null;
 })();
 </script>
 </body>
