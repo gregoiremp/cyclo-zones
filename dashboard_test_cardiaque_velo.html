@@ -196,6 +196,29 @@
     background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; padding:10px 14px; border-radius:10px;
     font-size:0.82rem; margin-top:10px; line-height:1.5;
   }
+
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(15,23,42,0.55); backdrop-filter:blur(2px);
+    display:flex; align-items:center; justify-content:center; z-index:1000; padding:20px;
+  }
+  .modal-overlay.hidden{display:none;}
+  .modal-box{
+    position:relative; background:var(--card); border-radius:20px; padding:34px 28px 28px; max-width:400px;
+    width:100%; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,.35); animation:popIn .35s cubic-bezier(.2,.9,.3,1.3);
+  }
+  @keyframes popIn{ from{transform:scale(.85); opacity:0;} to{transform:scale(1); opacity:1;} }
+  .modal-emoji{font-size:3.4rem; margin-bottom:8px; animation:bounce 1.1s ease infinite;}
+  @keyframes bounce{ 0%,100%{transform:translateY(0);} 50%{transform:translateY(-8px);} }
+  .modal-box h2{margin:4px 0 10px 0; font-size:1.3rem;}
+  .modal-box p{color:var(--muted); font-size:0.9rem; line-height:1.55; margin:0 0 22px 0;}
+  .modal-box p b{color:var(--text);}
+  .modal-actions{display:flex; flex-direction:column; gap:8px;}
+  .modal-actions button{width:100%; margin:0; font-size:0.9rem;}
+  .modal-close{
+    position:absolute; top:10px; right:12px; background:none; color:var(--muted); font-size:1rem;
+    padding:4px 8px; margin:0; border-radius:8px;
+  }
+  .modal-close:hover{background:#eef1f7; color:var(--text);}
 </style>
 </head>
 <body>
@@ -380,6 +403,20 @@
   </div>
 </div>
 </div><!-- /viewTest -->
+
+<div id="completionModal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <button type="button" class="modal-close" id="btnCompletionDismiss" title="Continuer quand même">✕</button>
+    <div class="modal-emoji">🎉</div>
+    <h2>Bravo, test terminé !</h2>
+    <p>Les <b><span id="completionStages">5</span> paliers</b> sont complets, en
+      <b><span id="completionTime">00:00</span></b> d'effort au total.</p>
+    <div class="modal-actions">
+      <button class="btn-primary" id="btnCompletionStop">🏁 Arrêter et voir le résumé</button>
+      <button class="btn-secondary" id="btnCompletionExport">⬇ Exporter le CSV</button>
+    </div>
+  </div>
+</div>
 
 <div id="viewAnalysis" class="hidden">
   <div class="banner">
@@ -791,8 +828,25 @@
     if (currentStage < total){
       currentStage += 1; stageElapsedSec = 0; beep();
       resInput.value = targetResistance(currentStage, total);
-    } else { beep(); }
+    } else if (!testCompleted) {
+      beep(); showCompletionModal();
+    }
   }
+
+  // ---------- Fin de test ----------
+  let testCompleted = false;
+  function showCompletionModal(){
+    testCompleted = true;
+    paused = true;
+    updateControlStates();
+    el('completionStages').textContent = Number(numStagesInput.value || 1);
+    el('completionTime').textContent = fmtTime(elapsedSec);
+    el('completionModal').classList.remove('hidden');
+  }
+  function hideCompletionModal(){ el('completionModal').classList.add('hidden'); }
+  el('btnCompletionStop').addEventListener('click', () => { hideCompletionModal(); if (running) el('btnStop').click(); });
+  el('btnCompletionExport').addEventListener('click', () => { hideCompletionModal(); el('btnExport').click(); });
+  el('btnCompletionDismiss').addEventListener('click', () => { hideCompletionModal(); paused = false; updateControlStates(); });
 
   // ---------- Controls ----------
   function updateControlStates(){
@@ -807,9 +861,10 @@
 
   el('btnStart').addEventListener('click', () => {
     if (running) return;
-    running=true; paused=false; pauseElapsedSec=0;
+    running=true; paused=false; pauseElapsedSec=0; testCompleted=false;
     timerHandle=setInterval(tick,1000);
     el('summaryCard').classList.add('hidden');
+    hideCompletionModal();
     updateControlStates();
   });
   el('btnPause').addEventListener('click', () => {
@@ -823,7 +878,7 @@
     advanceStage(); refreshStagePanel();
   });
   el('btnReset').addEventListener('click', () => {
-    running=false; paused=false; pauseElapsedSec=0; clearInterval(timerHandle);
+    running=false; paused=false; pauseElapsedSec=0; testCompleted=false; clearInterval(timerHandle);
     elapsedSec=0; stageElapsedSec=0; currentStage=1; log=[]; events=[];
     chart.data.labels=[]; chart.data.datasets.forEach(d=>d.data=[]);
     chart.update();
@@ -831,6 +886,7 @@
     el('eventsFeed').innerHTML='';
     el('summaryCard').classList.add('hidden');
     el('hrWarning').classList.add('hidden');
+    hideCompletionModal();
     resInput.value = targetResistance(1, Number(numStagesInput.value||1));
     refreshStagePanel();
     updateControlStates();
