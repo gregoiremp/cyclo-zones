@@ -83,10 +83,24 @@
   .stage-card{margin-bottom:16px;}
   .stage-header{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px; flex-wrap:wrap; gap:8px;}
   .stage-header .big{font-size:1.8rem; font-weight:800;}
-  .progress-bar{background:#eef1f7; border-radius:999px; height:10px; overflow:hidden;}
-  .progress-fill{height:100%; background:linear-gradient(90deg,var(--z1),var(--z3),var(--z5)); width:0%; transition:width .5s linear;}
+  .progress-bar{background:#eef1f7; border-radius:999px; height:18px; overflow:hidden; position:relative;}
+  .progress-fill{height:100%; background:linear-gradient(90deg,var(--z1),var(--z3),var(--z5)); width:0%; transition:width .5s linear; border-radius:999px;}
+  .progress-pct{
+    position:absolute; top:0; left:0; right:0; height:100%; display:flex; align-items:center; justify-content:center;
+    font-size:0.68rem; font-weight:800; color:#0f172a; text-shadow:0 1px 2px rgba(255,255,255,.6);
+  }
   .stage-targets{display:flex; gap:18px; margin-top:10px; flex-wrap:wrap; font-size:0.82rem; color:var(--muted);}
   .stage-targets b{color:var(--text);}
+
+  .stage-overview{display:flex; gap:5px; margin-bottom:14px;}
+  .stage-seg{
+    flex:1; height:16px; border-radius:999px; background:#eef1f7; overflow:hidden; position:relative;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .stage-seg-fill{position:absolute; inset:0; width:0%; border-radius:999px; transition:width .4s linear;}
+  .stage-seg-num{position:relative; font-size:0.62rem; font-weight:800; color:#94a3b8; z-index:1;}
+  .stage-seg.done .stage-seg-num, .stage-seg.current .stage-seg-num{color:#fff; text-shadow:0 1px 1px rgba(0,0,0,.25);}
+  .stage-seg.current{box-shadow:0 0 0 2px var(--accent);}
 
   .controls{display:flex; flex-wrap:wrap; gap:8px; margin-top:6px;}
 
@@ -138,8 +152,10 @@
   .stepper-inline{display:inline-flex; width:120px; vertical-align:middle;}
   .stepper-inline .stepper-btn{width:32px; height:34px;}
 
-  .chart-wrap{background:var(--card); border-radius:16px; padding:16px; margin-bottom:16px; border:1px solid var(--border); box-shadow:var(--shadow);}
-  canvas{max-height:260px;}
+  .chart-wrap{
+    background:var(--card); border-radius:16px; padding:16px; margin-bottom:16px; border:1px solid var(--border);
+    box-shadow:var(--shadow); height:300px; position:relative;
+  }
 
   table{width:100%; border-collapse:collapse; font-size:0.82rem;}
   th,td{text-align:left; padding:6px 8px; border-bottom:1px solid var(--border);}
@@ -312,11 +328,12 @@
     </div>
 
     <div class="card stage-card">
+      <div class="stage-overview" id="stageOverview"></div>
       <div class="stage-header">
         <div>Palier <span class="big" id="stageNum">1</span> / <span id="stageTotal">5</span></div>
         <div class="big" id="stageTimer">03:00</div>
       </div>
-      <div class="progress-bar"><div class="progress-fill" id="stageProgress"></div></div>
+      <div class="progress-bar"><div class="progress-fill" id="stageProgress"></div><span class="progress-pct" id="stageProgressPct">0%</span></div>
       <div class="stage-targets">
         <div>Zone cible : <b id="stageZoneTarget">Z1</b></div>
         <div>Résistance cible : <b id="stageResTarget">2</b>/10</div>
@@ -534,9 +551,9 @@
       {label:'Vitesse (km/h)', data:[], borderColor:'#16a34a', backgroundColor:'rgba(22,163,74,0.06)', yAxisID:'y1', tension:0.25, pointRadius:0, borderWidth:2, hidden:true},
     ]},
     options: {
-      animation:false, responsive:true, interaction:{mode:'index', intersect:false},
+      animation:false, responsive:true, maintainAspectRatio:false, interaction:{mode:'index', intersect:false},
       scales:{
-        x:{ticks:{color:'#6b7280'}, grid:{color:'#eef1f7'}},
+        x:{ticks:{color:'#6b7280', autoSkip:true, maxTicksLimit:8, maxRotation:0}, grid:{color:'#eef1f7'}},
         y:{position:'left', min:60, max:200, ticks:{color:'#ef4444'}, grid:{color:'#eef1f7'}},
         y1:{position:'right', min:0, max:140, ticks:{color:'#2563eb'}, grid:{drawOnChartArea:false}},
       },
@@ -679,11 +696,31 @@
     el('stageTotal').textContent = total;
     const remaining = Math.max(0, durationSec - stageElapsedSec);
     el('stageTimer').textContent = fmtTime(remaining);
-    el('stageProgress').style.width = Math.min(100, (stageElapsedSec/durationSec)*100) + '%';
+    const pct = Math.min(100, (stageElapsedSec/durationSec)*100);
+    el('stageProgress').style.width = pct + '%';
+    el('stageProgressPct').textContent = Math.round(pct) + '%';
     const zi = stageTargetZoneIndex(currentStage, total);
     el('stageZoneTarget').textContent = zones[zi].full;
     const tr = targetResistance(currentStage, total);
     el('stageResTarget').textContent = tr;
+    renderStageOverview(total, durationSec);
+  }
+
+  function renderStageOverview(total, durationSec){
+    const wrap = el('stageOverview');
+    wrap.innerHTML = '';
+    for (let s = 1; s <= total; s++){
+      const zone = zones[stageTargetZoneIndex(s, total)];
+      const seg = document.createElement('div');
+      seg.className = 'stage-seg';
+      let fillPct = 0;
+      if (s < currentStage) { fillPct = 100; seg.classList.add('done'); }
+      else if (s === currentStage) { fillPct = Math.min(100, (stageElapsedSec/durationSec)*100); seg.classList.add('current'); }
+      seg.title = 'Palier ' + s + ' · ' + zone.full;
+      seg.innerHTML = '<div class="stage-seg-fill" style="width:' + fillPct + '%; background:' + zone.color + ';"></div>' +
+        '<span class="stage-seg-num">' + s + '</span>';
+      wrap.appendChild(seg);
+    }
   }
 
   function fmtTime(sec){
@@ -777,6 +814,7 @@
     el('totalTime').textContent='00:00';
     el('eventsFeed').innerHTML='';
     el('summaryCard').classList.add('hidden');
+    el('hrWarning').classList.add('hidden');
     resInput.value = targetResistance(1, Number(numStagesInput.value||1));
     refreshStagePanel();
     updateControlStates();
@@ -784,6 +822,7 @@
   el('btnStop').addEventListener('click', () => {
     if (!running) return;
     running=false; paused=false; clearInterval(timerHandle);
+    el('hrWarning').classList.add('hidden');
     buildSummary();
     updateControlStates();
   });
@@ -1175,7 +1214,7 @@
         {label:'Vitesse moy. (km/h)', data: stages.map(s=>s.avgSpeed), borderColor:'#16a34a', backgroundColor:'rgba(22,163,74,0.06)', yAxisID:'y1', tension:0.2, borderWidth:2},
       ]},
       options: {
-        responsive:true, interaction:{mode:'index', intersect:false},
+        responsive:true, maintainAspectRatio:false, interaction:{mode:'index', intersect:false},
         scales:{
           x:{ticks:{color:'#6b7280'}, grid:{color:'#eef1f7'}},
           y:{position:'left', ticks:{color:'#ef4444'}, grid:{color:'#eef1f7'}},
