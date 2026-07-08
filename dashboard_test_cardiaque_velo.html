@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Test de niveau — Vélo</title>
+<title>Test d'Effort Progressif — Vélo</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
   :root{
@@ -44,9 +44,10 @@
 
   button{
     cursor:pointer; border:none; border-radius:10px; padding:9px 14px; font-size:0.85rem;
-    font-weight:600; margin-top:8px; margin-right:6px; transition:transform .08s, opacity .15s;
+    font-weight:600; margin-top:8px; margin-right:6px; transition:transform .08s, opacity .15s, background .15s;
   }
   button:active{transform:scale(0.97);}
+  button:disabled{cursor:not-allowed; opacity:0.45; filter:grayscale(40%); transform:none;}
   .btn-connect{background:#eef1f7; color:var(--text);}
   .btn-connect.connected{background:#dcfce7; color:var(--ok);}
   .btn-primary{background:var(--accent); color:white;}
@@ -55,6 +56,13 @@
   .stop-btn{
     background:var(--danger); color:white; font-size:1rem; padding:14px 20px; width:100%; margin-top:6px;
   }
+  .stop-btn:disabled{background:#eef1f7; color:#9aa1ae; opacity:1; filter:none;}
+  .btn-start{background:var(--ok); color:white;}
+  .btn-start:disabled{background:#eef1f7; color:#9aa1ae; opacity:1; filter:none;}
+  .btn-pause{background:#eef1f7; color:var(--text);}
+  .btn-pause.paused-active{background:#f59e0b; color:white;}
+  .btn-pause:disabled{opacity:0.45;}
+  .controls-card{border:1px solid var(--border);}
   .sensor-row{display:flex; align-items:center; justify-content:space-between; padding:6px 0; font-size:0.85rem;}
   .status-dot{display:inline-block; width:8px; height:8px; border-radius:50%; background:#cbd5e1; margin-right:8px;}
   .status-dot.on{background:var(--ok);}
@@ -102,9 +110,33 @@
   .hidden{display:none;}
 
   .events-feed{max-height:150px; overflow-y:auto; margin-top:8px; font-size:0.8rem;}
-  .event-item{padding:6px 0; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; gap:8px;}
+  .event-item{padding:6px 0; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; gap:8px;}
   .event-item:last-child{border-bottom:none;}
-  .event-tag{color:var(--muted); font-size:0.72rem; white-space:nowrap;}
+  .event-tag{color:var(--muted); font-size:0.72rem; white-space:nowrap; display:flex; align-items:center; gap:6px;}
+  .event-del-btn{
+    background:none; border:none; color:#cbd5e1; font-size:0.9rem; cursor:pointer; padding:2px 4px;
+    margin:0; border-radius:6px; line-height:1;
+  }
+  .event-del-btn:hover{color:var(--danger); background:#fee2e2;}
+
+  .stepper{
+    display:flex; align-items:stretch; margin-top:3px; border:1px solid var(--border); border-radius:9px;
+    overflow:hidden; background:#fafbfe;
+  }
+  .stepper input[type=number]{
+    border:none; text-align:center; margin-top:0; border-radius:0; background:transparent; width:100%;
+    -moz-appearance:textfield; padding:8px 4px;
+  }
+  .stepper input[type=number]::-webkit-inner-spin-button, .stepper input[type=number]::-webkit-outer-spin-button{
+    -webkit-appearance:none; margin:0;
+  }
+  .stepper-btn{
+    background:#eef1f7; border:none; width:38px; flex-shrink:0; font-size:1.05rem; font-weight:800;
+    color:var(--accent); cursor:pointer; margin:0; border-radius:0; padding:0;
+  }
+  .stepper-btn:active{background:#dde3f0;}
+  .stepper-inline{display:inline-flex; width:120px; vertical-align:middle;}
+  .stepper-inline .stepper-btn{width:32px; height:34px;}
 
   .chart-wrap{background:var(--card); border-radius:16px; padding:16px; margin-bottom:16px; border:1px solid var(--border); box-shadow:var(--shadow);}
   canvas{max-height:260px;}
@@ -150,23 +182,18 @@
 
 <div class="top">
   <div>
-    <h1>🚴 Test de niveau — Vélo</h1>
-    <div class="subtitle">Dashboard live + analyse post-test pour estimer les capacités à l'effort</div>
+    <h1>🚴 Test d'Effort Progressif — Vélo</h1>
+    <div class="subtitle">Protocole par paliers croissants pour cartographier tes zones d'entraînement (FC, vitesse, cadence)</div>
+    <div class="subtitle" style="margin-top:2px;">🎯 Objectif : identifier la zone d'endurance et le seuil, pour repartir avec une cible d'entraînement concrète pour tes sorties.</div>
   </div>
 </div>
 
 <div class="tabs">
-  <button class="tab-btn active" id="tabBtnTest">🚴 Test live</button>
+  <button class="tab-btn active" id="tabBtnTest">🚴 Test en direct</button>
   <button class="tab-btn" id="tabBtnAnalysis">📊 Analyse d'un CSV</button>
 </div>
 
 <div id="viewTest">
-<div class="banner">
-  ⚠️ Outil de suivi et d'enregistrement de données, pas un dispositif médical. Un test d'effort doit rester
-  supervisé par une personne attentive à l'état du testé ; en cas de douleur thoracique, vertige ou malaise,
-  arrêter immédiatement.
-</div>
-
 <div class="layout">
   <!-- SIDEBAR -->
   <div>
@@ -203,38 +230,63 @@
     <div class="card">
       <h2>Protocole</h2>
       <div class="row">
-        <div><label>Nb paliers</label><input type="number" id="numStages" value="5" min="1" max="12"></div>
-        <div><label>Durée/palier (min)</label><input type="number" id="stageDuration" value="3" min="1" max="15" step="0.5"></div>
+        <div><label>Nb paliers</label>
+          <div class="stepper">
+            <button type="button" class="stepper-btn" data-target="numStages" data-dir="-1">−</button>
+            <input type="number" id="numStages" value="5" min="1" max="12">
+            <button type="button" class="stepper-btn" data-target="numStages" data-dir="1">+</button>
+          </div>
+        </div>
+        <div><label>Durée/palier (min)</label>
+          <div class="stepper">
+            <button type="button" class="stepper-btn" data-target="stageDuration" data-dir="-1">−</button>
+            <input type="number" id="stageDuration" value="3" min="1" max="15" step="0.5">
+            <button type="button" class="stepper-btn" data-target="stageDuration" data-dir="1">+</button>
+          </div>
+        </div>
       </div>
       <div class="row">
-        <div><label>Résistance début (1-10)</label><input type="number" id="resStart" value="2" min="1" max="10"></div>
-        <div><label>Résistance fin (1-10)</label><input type="number" id="resEnd" value="8" min="1" max="10"></div>
+        <div><label>Résistance début (1-10)</label>
+          <div class="stepper">
+            <button type="button" class="stepper-btn" data-target="resStart" data-dir="-1">−</button>
+            <input type="number" id="resStart" value="2" min="1" max="10">
+            <button type="button" class="stepper-btn" data-target="resStart" data-dir="1">+</button>
+          </div>
+        </div>
+        <div><label>Résistance fin (1-10)</label>
+          <div class="stepper">
+            <button type="button" class="stepper-btn" data-target="resEnd" data-dir="-1">−</button>
+            <input type="number" id="resEnd" value="8" min="1" max="10">
+            <button type="button" class="stepper-btn" data-target="resEnd" data-dir="1">+</button>
+          </div>
+        </div>
       </div>
       <label style="display:flex; align-items:center; gap:6px; margin-top:10px;">
         <input type="checkbox" id="autoAdvance" checked style="width:auto;">
         Palier suivant automatique
       </label>
     </div>
-
-    <div class="card">
-      <h2>Contrôles</h2>
-      <div class="controls">
-        <button class="btn-primary" id="btnStart">▶ Démarrer</button>
-        <button class="btn-secondary" id="btnPause">⏸ Pause</button>
-        <button class="btn-secondary" id="btnNextStage">⏭ Palier suivant</button>
-        <button class="btn-secondary" id="btnReset">↺ Réinitialiser</button>
-      </div>
-      <div style="margin-top:8px; font-size:0.85rem; color:var(--muted);">
-        Temps total : <span id="totalTime" style="color:var(--text); font-weight:700;">00:00</span>
-      </div>
-      <div id="hrWarning" class="warn-flash hidden">⚠ FC proche du maximum estimé</div>
-      <button class="stop-btn" id="btnStop">■ Arrêter le test</button>
-      <button class="btn-secondary" id="btnExport" style="width:100%;">⬇ Exporter CSV</button>
-    </div>
   </div>
 
   <!-- MAIN -->
   <div>
+    <div class="card controls-card">
+      <h2>Contrôles</h2>
+      <div class="controls">
+        <button class="btn-start" id="btnStart">▶ Démarrer</button>
+        <button class="btn-pause" id="btnPause" disabled>⏸ Pause</button>
+        <button class="btn-secondary" id="btnNextStage" disabled>⏭ Palier suivant</button>
+        <button class="btn-secondary" id="btnReset">↺ Réinitialiser</button>
+      </div>
+      <div style="margin-top:10px; font-size:0.85rem; color:var(--muted); display:flex; gap:18px; flex-wrap:wrap; align-items:center;">
+        <span>Temps total : <span id="totalTime" style="color:var(--text); font-weight:700;">00:00</span></span>
+        <span id="pauseTimerWrap" class="hidden" style="color:#b45309; font-weight:700;">⏸ En pause depuis <span id="pauseTimer">00:00</span></span>
+      </div>
+      <div id="hrWarning" class="warn-flash hidden">⚠ FC proche du maximum estimé</div>
+      <button class="stop-btn" id="btnStop" disabled>■ Arrêter le test</button>
+      <button class="btn-secondary" id="btnExport" style="width:100%;">⬇ Exporter CSV</button>
+    </div>
+
     <div class="metrics-grid">
       <div class="metric-card" id="hrCard">
         <div class="metric-value" id="hrValue">--</div>
@@ -269,7 +321,11 @@
         <div>Zone cible : <b id="stageZoneTarget">Z1</b></div>
         <div>Résistance cible : <b id="stageResTarget">2</b>/10</div>
         <div>Résistance appliquée :
-          <input type="number" id="resInput" min="1" max="10" value="2" style="width:60px; display:inline-block; padding:4px 6px;">
+          <div class="stepper stepper-inline">
+            <button type="button" class="stepper-btn" data-target="resInput" data-dir="-1">−</button>
+            <input type="number" id="resInput" min="1" max="10" value="2">
+            <button type="button" class="stepper-btn" data-target="resInput" data-dir="1">+</button>
+          </div>
         </div>
       </div>
     </div>
@@ -430,16 +486,43 @@
     });
   });
 
+  let eventIdCounter = 0;
   function logEvent(label){
-    events.push({t: elapsedSec, stage: currentStage, label});
+    const id = ++eventIdCounter;
+    events.push({id, t: elapsedSec, stage: currentStage, label});
     const feed = el('eventsFeed');
     const item = document.createElement('div');
     item.className='event-item';
-    item.innerHTML = '<span>'+label+'</span><span class="event-tag">Palier '+currentStage+' · '+fmtTime(elapsedSec)+'</span>';
+    item.dataset.id = id;
+    item.innerHTML = '<span>'+label+'</span><span class="event-tag">Palier '+currentStage+' · '+fmtTime(elapsedSec)+
+      ' <button type="button" class="event-del-btn" data-id="'+id+'" title="Supprimer cet événement">✕</button></span>';
     feed.prepend(item);
     lastEventNote = label;
   }
   let lastEventNote = '';
+  el('eventsFeed').addEventListener('click', e => {
+    const btn = e.target.closest('.event-del-btn');
+    if (!btn) return;
+    const id = Number(btn.dataset.id);
+    events = events.filter(ev => ev.id !== id);
+    btn.closest('.event-item').remove();
+  });
+
+  // ---------- Steppers (+/- pour les champs à choix discrets) ----------
+  document.querySelectorAll('.stepper-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const inp = el(btn.dataset.target);
+      const step = Number(inp.step || 1);
+      const min = inp.min !== '' ? Number(inp.min) : -Infinity;
+      const max = inp.max !== '' ? Number(inp.max) : Infinity;
+      let v = Number(inp.value || 0) + step * Number(btn.dataset.dir);
+      v = Math.min(max, Math.max(min, v));
+      v = Math.round(v * 100) / 100;
+      inp.value = v;
+      inp.dispatchEvent(new Event('input', {bubbles:true}));
+      inp.dispatchEvent(new Event('change', {bubbles:true}));
+    });
+  });
 
   // ---------- Chart ----------
   const ctx = document.getElementById('liveChart').getContext('2d');
@@ -619,8 +702,14 @@
   }
 
   // ---------- Timer loop ----------
+  let pauseElapsedSec = 0;
   function tick(){
-    if (!running || paused) return;
+    if (!running) return;
+    if (paused){
+      pauseElapsedSec += 1;
+      el('pauseTimer').textContent = fmtTime(pauseElapsedSec);
+      return;
+    }
     elapsedSec += 1; stageElapsedSec += 1;
     el('totalTime').textContent = fmtTime(elapsedSec);
 
@@ -653,15 +742,35 @@
   }
 
   // ---------- Controls ----------
+  function updateControlStates(){
+    el('btnStart').disabled = running;
+    el('btnPause').disabled = !running;
+    el('btnPause').textContent = paused ? '▶ Reprendre' : '⏸ Pause';
+    el('btnPause').classList.toggle('paused-active', paused);
+    el('btnNextStage').disabled = !running;
+    el('btnStop').disabled = !running;
+    el('pauseTimerWrap').classList.toggle('hidden', !paused);
+  }
+
   el('btnStart').addEventListener('click', () => {
-    if (!running){ running=true; paused=false; timerHandle=setInterval(tick,1000); }
-    else { paused=false; }
+    if (running) return;
+    running=true; paused=false; pauseElapsedSec=0;
+    timerHandle=setInterval(tick,1000);
     el('summaryCard').classList.add('hidden');
+    updateControlStates();
   });
-  el('btnPause').addEventListener('click', () => { paused=true; });
-  el('btnNextStage').addEventListener('click', () => { advanceStage(); refreshStagePanel(); });
+  el('btnPause').addEventListener('click', () => {
+    if (!running) return;
+    paused = !paused;
+    if (paused){ pauseElapsedSec = 0; el('pauseTimer').textContent = '00:00'; }
+    updateControlStates();
+  });
+  el('btnNextStage').addEventListener('click', () => {
+    if (!running) return;
+    advanceStage(); refreshStagePanel();
+  });
   el('btnReset').addEventListener('click', () => {
-    running=false; paused=false; clearInterval(timerHandle);
+    running=false; paused=false; pauseElapsedSec=0; clearInterval(timerHandle);
     elapsedSec=0; stageElapsedSec=0; currentStage=1; log=[]; events=[];
     chart.data.labels=[]; chart.data.datasets.forEach(d=>d.data=[]);
     chart.update();
@@ -670,11 +779,15 @@
     el('summaryCard').classList.add('hidden');
     resInput.value = targetResistance(1, Number(numStagesInput.value||1));
     refreshStagePanel();
+    updateControlStates();
   });
   el('btnStop').addEventListener('click', () => {
+    if (!running) return;
     running=false; paused=false; clearInterval(timerHandle);
     buildSummary();
+    updateControlStates();
   });
+  updateControlStates();
 
   function buildSummary(){
     if (log.length === 0) return;
