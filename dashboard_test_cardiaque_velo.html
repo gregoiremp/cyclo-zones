@@ -272,14 +272,14 @@
         </div>
       </div>
       <div class="row">
-        <div><label data-i18n="lblResStart">Résistance début (1-10)</label>
+        <div><label data-i18n-html="lblResStart">Résistance début (1-10)</label>
           <div class="stepper">
             <button type="button" class="stepper-btn" data-target="resStart" data-dir="-1">−</button>
             <input type="number" id="resStart" value="2" min="1" max="10">
             <button type="button" class="stepper-btn" data-target="resStart" data-dir="1">+</button>
           </div>
         </div>
-        <div><label data-i18n="lblResEnd">Résistance fin (1-10)</label>
+        <div><label data-i18n-html="lblResEnd">Résistance fin (1-10)</label>
           <div class="stepper">
             <button type="button" class="stepper-btn" data-target="resEnd" data-dir="-1">−</button>
             <input type="number" id="resEnd" value="8" min="1" max="10">
@@ -299,7 +299,7 @@
             <button type="button" class="stepper-btn" data-target="recoveryDuration" data-dir="1">+</button>
           </div>
         </div>
-        <div><label data-i18n="lblRecoveryResistance">Résistance récup (1-10)</label>
+        <div><label data-i18n-html="lblRecoveryResistance">Résistance récup (1-10)</label>
           <div class="stepper">
             <button type="button" class="stepper-btn" data-target="recoveryResistance" data-dir="-1">−</button>
             <input type="number" id="recoveryResistance" value="1" min="1" max="10">
@@ -546,11 +546,11 @@
       cardProtocol: "Protocole",
       lblNumStages: "Nb paliers",
       lblStageDuration: "Durée/palier (min)",
-      lblResStart: "Résistance début (1-10)",
-      lblResEnd: "Résistance fin (1-10)",
+      lblResStart: "Résistance début<br><small>(1-10)</small>",
+      lblResEnd: "Résistance fin<br><small>(1-10)</small>",
       lblAutoAdvance: "Palier suivant automatique",
       lblRecoveryDuration: "Récupération (min)",
-      lblRecoveryResistance: "Résistance récup (1-10)",
+      lblRecoveryResistance: "Résistance récup<br><small>(1-10)</small>",
       hintRecovery: "Phase de retour au calme après le dernier palier (ou déclenchée manuellement) : résistance très basse, pédalage libre, pour mesurer la récupération cardiaque.",
       cardSensors: "Capteurs Bluetooth",
       sensorHR: "Fréquence cardiaque",
@@ -691,11 +691,11 @@
       cardProtocol: "Protocol",
       lblNumStages: "Number of stages",
       lblStageDuration: "Duration/stage (min)",
-      lblResStart: "Starting resistance (1-10)",
-      lblResEnd: "Ending resistance (1-10)",
+      lblResStart: "Starting resistance<br><small>(1-10)</small>",
+      lblResEnd: "Ending resistance<br><small>(1-10)</small>",
       lblAutoAdvance: "Automatic next stage",
       lblRecoveryDuration: "Recovery (min)",
-      lblRecoveryResistance: "Recovery resistance (1-10)",
+      lblRecoveryResistance: "Recovery resistance<br><small>(1-10)</small>",
       hintRecovery: "Cool-down phase after the last stage (or triggered manually): very low resistance, free pedaling, to measure heart-rate recovery.",
       cardSensors: "Bluetooth sensors",
       sensorHR: "Heart rate",
