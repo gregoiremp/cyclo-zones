@@ -337,7 +337,7 @@
         <div><label data-i18n="lblHrRest">FC repos (optionnel)</label><input type="number" id="hrrest" value="" min="30" max="120" placeholder="bpm"></div>
       </div>
       <label data-i18n="lblHrMax">FC max (calculée, éditable)</label>
-      <input type="number" id="hrmax" value="170" min="80" max="230">
+      <input type="number" id="hrmax" value="173" min="80" max="230">
       <div class="bmi-readout"><span data-i18n="lblBmi">IMC :</span> <b id="bmiValue">--</b></div>
     </div>
   </div>
@@ -563,7 +563,7 @@
       lblWeight: "Poids (kg)",
       lblHeight: "Taille (cm)",
       lblHrRest: "FC repos (optionnel)",
-      lblHrMax: "FC max (calculée, éditable)",
+      lblHrMax: "FC max — Robergs 2002 (éditable)",
       lblBmi: "IMC :",
       cardControls: "Contrôles",
       btnStart: "▶ Démarrer",
@@ -708,7 +708,7 @@
       lblWeight: "Weight (kg)",
       lblHeight: "Height (cm)",
       lblHrRest: "Resting HR (optional)",
-      lblHrMax: "Max HR (calculated, editable)",
+      lblHrMax: "Max HR — Robergs 2002 (editable)",
       lblBmi: "BMI:",
       cardControls: "Controls",
       btnStart: "▶ Start",
@@ -911,7 +911,7 @@
   const WHEEL_CIRC_MM = 2105;
   const recoveryDurationInput=el('recoveryDuration'), recoveryResistanceInput=el('recoveryResistance');
 
-  function onAgeChange(){ const a = Number(ageInput.value); if(a>0) hrmaxInput.value = Math.round(220 - a); refreshStagePanel(); }
+  function onAgeChange(){ const a = Number(ageInput.value); if(a>0) hrmaxInput.value = Math.round(206.9 - 0.67 * a); refreshStagePanel(); }
   ageInput.addEventListener('input', onAgeChange);
   ageInput.addEventListener('change', onAgeChange);
   [hrmaxInput, hrrestInput].forEach(i => { i.addEventListener('input', () => refreshStagePanel()); i.addEventListener('change', () => refreshStagePanel()); });
