@@ -8,7 +8,7 @@
 <style>
   :root{
     --bg:#f3f5f9; --card:#ffffff; --border:#e6e9f0; --text:#0f172a; --muted:#6b7280;
-    --z1:#38bdf8; --z2:#22c55e; --z3:#eab308; --z4:#f97316; --z5:#ef4444;
+    --z1:#38bdf8; --z2:#22c55e; --z3:#eab308; --z4:#f97316; --z5:#111111;
     --accent:#2563eb; --accent-light:#eff4ff; --danger:#dc2626; --ok:#16a34a;
     --shadow:0 1px 2px rgba(15,23,42,.04), 0 4px 12px rgba(15,23,42,.06);
   }
@@ -19,6 +19,11 @@
   }
   .top{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:8px;}
   h1{font-size:1.25rem; margin:0; font-weight:700;}
+  .lang-toggle{display:flex; border:1px solid var(--border); border-radius:10px; overflow:hidden; flex-shrink:0; background:#eef1f7;}
+  .lang-btn{
+    margin:0; border-radius:0; padding:8px 14px; font-size:0.78rem; font-weight:700; background:transparent; color:var(--muted);
+  }
+  .lang-btn.active{background:var(--accent); color:white;}
   .subtitle{color:var(--muted); font-size:0.85rem; margin-top:2px;}
   .banner{
     background:var(--accent-light); border:1px solid #c7dbff; color:#1d4ed8; padding:10px 14px;
@@ -66,6 +71,9 @@
   .btn-pause:disabled{opacity:0.45;}
   .controls-card{border:1px solid var(--border);}
   .sensor-row{display:flex; align-items:center; justify-content:space-between; padding:6px 0; font-size:0.85rem;}
+  .sensor-hint{font-size:0.72rem; color:var(--muted); margin:-4px 0 6px 0; min-height:1em;}
+  .sensor-hint.warn{color:#b45309; font-weight:600;}
+  .sensor-hint.ok{color:var(--ok);}
   .status-dot{display:inline-block; width:8px; height:8px; border-radius:50%; background:#cbd5e1; margin-right:8px;}
   .status-dot.on{background:var(--ok);}
   .hint{font-size:0.72rem; color:var(--muted); margin-top:6px; line-height:1.4;}
@@ -81,7 +89,8 @@
   .metric-value{font-size:2.6rem; font-weight:800; line-height:1;}
   .metric-label{color:var(--muted); font-size:0.72rem; margin-top:6px; text-transform:uppercase; letter-spacing:0.04em; font-weight:700;}
   .zone-pill{
-    display:inline-block; margin-top:8px; padding:4px 12px; border-radius:999px; font-weight:700; font-size:0.72rem; color:white;
+    display:inline-block; margin-top:8px; padding:6px 12px; border-radius:12px; font-weight:700; font-size:0.72rem; color:white;
+    line-height:1.4; text-align:center;
   }
 
   .stage-card{margin-bottom:16px;}
@@ -225,15 +234,19 @@
 
 <div class="top">
   <div>
-    <h1>🚴 Test d'Effort Progressif — Vélo</h1>
-    <div class="subtitle">Protocole par paliers croissants pour cartographier tes zones d'entraînement (FC, vitesse, cadence)</div>
-    <div class="subtitle" style="margin-top:2px;">🎯 Objectif : identifier la zone d'endurance et le seuil, pour repartir avec une cible d'entraînement concrète pour tes sorties.</div>
+    <h1 data-i18n="h1Title">🚴 Test d'Effort Progressif — Vélo</h1>
+    <div class="subtitle" data-i18n="subtitle1">Protocole par paliers croissants pour cartographier tes zones d'entraînement (FC, vitesse, cadence)</div>
+    <div class="subtitle" style="margin-top:2px;" data-i18n="subtitle2">🎯 Objectif : identifier la zone d'endurance et le seuil, pour repartir avec une cible d'entraînement concrète pour tes sorties.</div>
+  </div>
+  <div class="lang-toggle">
+    <button type="button" class="lang-btn" id="btnLangFR">FR</button>
+    <button type="button" class="lang-btn" id="btnLangEN">EN</button>
   </div>
 </div>
 
 <div class="tabs">
-  <button class="tab-btn active" id="tabBtnTest">🚴 Test en direct</button>
-  <button class="tab-btn" id="tabBtnAnalysis">📊 Analyse d'un CSV</button>
+  <button class="tab-btn active" id="tabBtnTest" data-i18n="tabTest">🚴 Test en direct</button>
+  <button class="tab-btn" id="tabBtnAnalysis" data-i18n="tabAnalysis">📊 Analyse d'un CSV</button>
 </div>
 
 <div id="viewTest">
@@ -241,16 +254,16 @@
   <!-- SIDEBAR -->
   <div>
     <div class="card">
-      <h2>Protocole</h2>
+      <h2 data-i18n="cardProtocol">Protocole</h2>
       <div class="row">
-        <div><label>Nb paliers</label>
+        <div><label data-i18n="lblNumStages">Nb paliers</label>
           <div class="stepper">
             <button type="button" class="stepper-btn" data-target="numStages" data-dir="-1">−</button>
             <input type="number" id="numStages" value="5" min="1" max="12">
             <button type="button" class="stepper-btn" data-target="numStages" data-dir="1">+</button>
           </div>
         </div>
-        <div><label>Durée/palier (min)</label>
+        <div><label data-i18n="lblStageDuration">Durée/palier (min)</label>
           <div class="stepper">
             <button type="button" class="stepper-btn" data-target="stageDuration" data-dir="-1">−</button>
             <input type="number" id="stageDuration" value="3" min="1" max="15" step="0.5">
@@ -259,14 +272,14 @@
         </div>
       </div>
       <div class="row">
-        <div><label>Résistance début (1-10)</label>
+        <div><label data-i18n="lblResStart">Résistance début (1-10)</label>
           <div class="stepper">
             <button type="button" class="stepper-btn" data-target="resStart" data-dir="-1">−</button>
             <input type="number" id="resStart" value="2" min="1" max="10">
             <button type="button" class="stepper-btn" data-target="resStart" data-dir="1">+</button>
           </div>
         </div>
-        <div><label>Résistance fin (1-10)</label>
+        <div><label data-i18n="lblResEnd">Résistance fin (1-10)</label>
           <div class="stepper">
             <button type="button" class="stepper-btn" data-target="resEnd" data-dir="-1">−</button>
             <input type="number" id="resEnd" value="8" min="1" max="10">
@@ -276,95 +289,131 @@
       </div>
       <label style="display:flex; align-items:center; gap:6px; margin-top:10px;">
         <input type="checkbox" id="autoAdvance" checked style="width:auto;">
-        Palier suivant automatique
+        <span data-i18n="lblAutoAdvance">Palier suivant automatique</span>
       </label>
+      <div class="row" style="margin-top:10px;">
+        <div><label data-i18n="lblRecoveryDuration">Récupération (min)</label>
+          <div class="stepper">
+            <button type="button" class="stepper-btn" data-target="recoveryDuration" data-dir="-1">−</button>
+            <input type="number" id="recoveryDuration" value="3" min="1" max="10" step="0.5">
+            <button type="button" class="stepper-btn" data-target="recoveryDuration" data-dir="1">+</button>
+          </div>
+        </div>
+        <div><label data-i18n="lblRecoveryResistance">Résistance récup (1-10)</label>
+          <div class="stepper">
+            <button type="button" class="stepper-btn" data-target="recoveryResistance" data-dir="-1">−</button>
+            <input type="number" id="recoveryResistance" value="1" min="1" max="10">
+            <button type="button" class="stepper-btn" data-target="recoveryResistance" data-dir="1">+</button>
+          </div>
+        </div>
+      </div>
+      <div class="hint" style="margin-top:6px;" data-i18n="hintRecovery">Phase de retour au calme après le dernier palier (ou déclenchée
+        manuellement) : résistance très basse, pédalage libre, pour mesurer la récupération cardiaque.</div>
     </div>
 
     <div class="card">
-      <h2>Capteurs Bluetooth</h2>
-      <div class="sensor-row"><span><span class="status-dot" id="hrDot"></span>Fréquence cardiaque</span>
-        <button class="btn-connect" id="btnConnectHR">Connecter</button></div>
-      <div class="sensor-row"><span><span class="status-dot" id="cadDot"></span>Cadence (Magene)</span>
-        <button class="btn-connect" id="btnConnectCad">Connecter</button></div>
-      <div class="sensor-row"><span><span class="status-dot" id="speedDot"></span>Vitesse (Magene)</span>
-        <button class="btn-connect" id="btnConnectSpeed">Connecter</button></div>
-      <label>Circonférence roue (mm)</label>
+      <h2 data-i18n="cardSensors">Capteurs Bluetooth</h2>
+      <div class="sensor-row"><span><span class="status-dot" id="hrDot"></span><span data-i18n="sensorHR">Fréquence cardiaque</span></span>
+        <button class="btn-connect" id="btnConnectHR" data-i18n="btnConnect">Connecter</button></div>
+      <div class="sensor-hint" id="hrSensorHint"></div>
+      <div class="sensor-row"><span><span class="status-dot" id="cadDot"></span><span data-i18n="sensorCadence">Cadence (Magene)</span></span>
+        <button class="btn-connect" id="btnConnectCad" data-i18n="btnConnect">Connecter</button></div>
+      <div class="sensor-hint" id="cadSensorHint"></div>
+      <div class="sensor-row"><span><span class="status-dot" id="speedDot"></span><span data-i18n="sensorSpeed">Vitesse (Magene)</span></span>
+        <button class="btn-connect" id="btnConnectSpeed" data-i18n="btnConnect">Connecter</button></div>
+      <div class="sensor-hint" id="speedSensorHint"></div>
+      <label data-i18n="lblWheelCirc">Circonférence roue (mm)</label>
       <input type="number" id="wheelCirc" value="2105" min="1500" max="2500">
-      <div class="hint">Les 3 capteurs se connectent en parallèle, indépendamment (3 connexions Bluetooth
+      <div class="hint" data-i18n="hintSensors">Les 3 capteurs se connectent en parallèle, indépendamment (3 connexions Bluetooth
         distinctes). Chrome/Edge desktop ou Android requis. Sélectionne bien le bon appareil dans chaque
         fenêtre d'appairage.</div>
+      <div class="hint" data-i18n="hintSensorTip">Astuce : si tu as plusieurs capteurs Magene, connecte-les un par un — éloigne ou
+        éteins ceux que tu ne connectes pas encore, sinon Chrome les affiche tous avec des noms illisibles
+        (souvent juste un numéro de série) et impossibles à distinguer. L'appli essaie de détecter
+        automatiquement le vrai type du capteur une fois connecté et te prévient en cas d'erreur.</div>
     </div>
 
     <div class="card">
-      <h2>Profil</h2>
+      <h2 data-i18n="cardProfile">Profil</h2>
       <div class="row">
-        <div><label>Âge</label><input type="number" id="age" value="65" min="10" max="100"></div>
-        <div><label>Poids (kg)</label><input type="number" id="weight" value="80" min="20" max="200"></div>
+        <div><label data-i18n="lblAge">Âge</label><input type="number" id="age" value="65" min="10" max="100"></div>
+        <div><label data-i18n="lblWeight">Poids (kg)</label><input type="number" id="weight" value="80" min="20" max="200"></div>
       </div>
       <div class="row">
-        <div><label>Taille (cm)</label><input type="number" id="height" value="175" min="100" max="230"></div>
-        <div><label>FC repos (optionnel)</label><input type="number" id="hrrest" value="" min="30" max="120" placeholder="bpm"></div>
+        <div><label data-i18n="lblHeight">Taille (cm)</label><input type="number" id="height" value="175" min="100" max="230"></div>
+        <div><label data-i18n="lblHrRest">FC repos (optionnel)</label><input type="number" id="hrrest" value="" min="30" max="120" placeholder="bpm"></div>
       </div>
-      <label>FC max (calculée, éditable)</label>
+      <label data-i18n="lblHrMax">FC max (calculée, éditable)</label>
       <input type="number" id="hrmax" value="155" min="80" max="230">
-      <div class="bmi-readout">IMC : <b id="bmiValue">--</b></div>
+      <div class="bmi-readout"><span data-i18n="lblBmi">IMC :</span> <b id="bmiValue">--</b></div>
     </div>
   </div>
 
   <!-- MAIN -->
   <div>
     <div class="card controls-card">
-      <h2>Contrôles</h2>
+      <h2 data-i18n="cardControls">Contrôles</h2>
       <div class="controls">
-        <button class="btn-start" id="btnStart">▶ Démarrer</button>
-        <button class="btn-pause" id="btnPause" disabled>⏸ Pause</button>
-        <button class="btn-secondary" id="btnNextStage" disabled>⏭ Palier suivant</button>
-        <button class="btn-secondary" id="btnReset">↺ Réinitialiser</button>
+        <button class="btn-start" id="btnStart" data-i18n="btnStart">▶ Démarrer</button>
+        <button class="btn-pause" id="btnPause" disabled data-i18n="btnPause">⏸ Pause</button>
+        <button class="btn-secondary" id="btnNextStage" disabled data-i18n="btnNextStage">⏭ Palier suivant</button>
+        <button class="btn-secondary" id="btnRecovery" disabled data-i18n="btnRecoveryBtn">❄ Récupération</button>
+        <button class="btn-secondary" id="btnReset" data-i18n="btnReset">↺ Réinitialiser</button>
       </div>
       <div style="margin-top:10px; font-size:0.85rem; color:var(--muted); display:flex; gap:18px; flex-wrap:wrap; align-items:center;">
-        <span>Temps total : <span id="totalTime" style="color:var(--text); font-weight:700;">00:00</span></span>
-        <span id="pauseTimerWrap" class="hidden" style="color:#b45309; font-weight:700;">⏸ En pause depuis <span id="pauseTimer">00:00</span></span>
+        <span><span data-i18n="lblTotalTime">Temps total :</span> <span id="totalTime" style="color:var(--text); font-weight:700;">00:00</span></span>
+        <span id="pauseTimerWrap" class="hidden" style="color:#b45309; font-weight:700;"><span data-i18n="lblPausedSince">⏸ En pause depuis</span> <span id="pauseTimer">00:00</span></span>
       </div>
-      <div id="hrWarning" class="warn-flash hidden">⚠ FC proche du maximum estimé</div>
-      <button class="stop-btn" id="btnStop" disabled>■ Arrêter le test</button>
-      <button class="btn-secondary" id="btnExport" style="width:100%;">⬇ Exporter CSV</button>
+      <div id="hrWarning" class="warn-flash hidden" data-i18n="warnHrDefault">⚠ FC proche du maximum estimé</div>
+      <button class="stop-btn" id="btnStop" disabled data-i18n="btnStop">■ Arrêter le test</button>
+      <button class="btn-secondary" id="btnExport" style="width:100%;" data-i18n="btnExportCSV">⬇ Exporter CSV</button>
     </div>
 
     <div class="metrics-grid">
       <div class="metric-card" id="hrCard">
         <div class="metric-value" id="hrValue">--</div>
-        <div class="metric-label">FC (bpm)</div>
+        <div class="metric-label" data-i18n="metricHR">FC (bpm)</div>
         <div class="zone-pill" id="zonePill" style="background:#cbd5e1;">--</div>
       </div>
       <div class="metric-card">
         <div class="metric-value" id="cadValue">--</div>
-        <div class="metric-label">Cadence (rpm)</div>
+        <div class="metric-label" data-i18n="metricCadence">Cadence (rpm)</div>
       </div>
       <div class="metric-card">
         <div class="metric-value" id="speedValue">--</div>
-        <div class="metric-label">Vitesse (km/h)</div>
+        <div class="metric-label" data-i18n="metricSpeed">Vitesse (km/h)</div>
       </div>
       <div class="metric-card">
         <div class="metric-value" id="resValue">--</div>
-        <div class="metric-label">Résistance /10</div>
+        <div class="metric-label" data-i18n="metricResistance">Résistance /10</div>
       </div>
       <div class="metric-card">
         <div class="metric-value" id="rpeValue">--</div>
-        <div class="metric-label">Ressenti (RPE)</div>
+        <div class="metric-label" data-i18n="metricRPE">Ressenti (RPE)</div>
       </div>
     </div>
 
     <div class="card stage-card">
       <div class="stage-overview" id="stageOverview"></div>
-      <div class="stage-header">
-        <div>Palier <span class="big" id="stageNum">1</span> / <span id="stageTotal">5</span></div>
+      <div class="stage-header" id="stageHeaderNormal">
+        <div><span data-i18n="wordStage">Palier</span> <span class="big" id="stageNum">1</span> / <span id="stageTotal">5</span></div>
         <div class="big" id="stageTimer">03:00</div>
       </div>
+      <div class="stage-header hidden" id="stageHeaderRecovery">
+        <div>❄ <span class="big" data-i18n="wordRecoveryBig">Récupération</span></div>
+        <div class="big" id="recoveryTimer">03:00</div>
+      </div>
       <div class="progress-bar"><div class="progress-fill" id="stageProgress"></div><span class="progress-pct" id="stageProgressPct">0%</span></div>
+      <div class="stage-targets" id="stageTargetsNormal">
+        <div><span data-i18n="lblStageObjective">🎯 Objectif palier :</span> <b id="stageZoneTarget">Z1</b></div>
+        <div><span data-i18n="lblResTargetLabel">Résistance cible :</span> <b id="stageResTarget">2</b>/10</div>
+      </div>
+      <div class="stage-targets hidden" id="stageTargetsRecovery">
+        <div><span data-i18n="lblRecoveryStartHR">❤ FC début récup :</span> <b id="recoveryStartHRLabel">--</b> bpm</div>
+        <div><span data-i18n="lblVariation">Variation :</span> <b id="recoveryDeltaLabel">--</b></div>
+      </div>
       <div class="stage-targets">
-        <div>Zone cible : <b id="stageZoneTarget">Z1</b></div>
-        <div>Résistance cible : <b id="stageResTarget">2</b>/10</div>
-        <div>Résistance appliquée :
+        <div><span data-i18n="lblResApplied">Résistance appliquée :</span>
           <div class="stepper stepper-inline">
             <button type="button" class="stepper-btn" data-target="resInput" data-dir="-1">−</button>
             <input type="number" id="resInput" min="1" max="10" value="2">
@@ -375,17 +424,17 @@
     </div>
 
     <div class="card">
-      <h2>Ressenti à l'effort (RPE 1–10)</h2>
+      <h2 data-i18n="cardRPE">Ressenti à l'effort (RPE 1–10)</h2>
       <div class="rpe-row" id="rpeRow"></div>
-      <div class="rpe-scale-labels"><span>1 · Très facile</span><span>5 · Modéré</span><span>10 · Épuisement max</span></div>
+      <div class="rpe-scale-labels"><span data-i18n="rpeVeryEasy">1 · Très facile</span><span data-i18n="rpeModerate">5 · Modéré</span><span data-i18n="rpeMax">10 · Épuisement max</span></div>
 
-      <h2 style="margin-top:16px;">Symptômes / observations</h2>
+      <h2 style="margin-top:16px;" data-i18n="cardSymptoms">Symptômes / observations</h2>
       <div class="symptom-row">
-        <button class="symptom-btn" data-label="Normal">Normal</button>
-        <button class="symptom-btn" data-label="Essoufflement léger">Essoufflement léger</button>
-        <button class="symptom-btn warn" data-label="Essoufflement important">Essoufflement important</button>
-        <button class="symptom-btn warn" data-label="Douleur / gêne thoracique">Douleur thoracique</button>
-        <button class="symptom-btn warn" data-label="Vertiges">Vertiges</button>
+        <button class="symptom-btn" data-labelkey="symNormal" data-i18n="symNormal">Normal</button>
+        <button class="symptom-btn" data-labelkey="symBreathMild" data-i18n="symBreathMild">Essoufflement léger</button>
+        <button class="symptom-btn warn" data-labelkey="symBreathSevere" data-i18n="symBreathSevere">Essoufflement important</button>
+        <button class="symptom-btn warn" data-labelkey="symChestPainLog" data-i18n="symChestPainBtn">Douleur thoracique</button>
+        <button class="symptom-btn warn" data-labelkey="symDizzy" data-i18n="symDizzy">Vertiges</button>
       </div>
       <div class="events-feed" id="eventsFeed"></div>
     </div>
@@ -395,9 +444,9 @@
     </div>
 
     <div class="card hidden" id="summaryCard">
-      <h2>Résumé du test</h2>
+      <h2 data-i18n="cardSummary">Résumé du test</h2>
       <table id="summaryTable"></table>
-      <div class="hint">Données brutes uniquement — pas d'interprétation médicale. Exporte le CSV pour une
+      <div class="hint" data-i18n="hintSummary">Données brutes uniquement — pas d'interprétation médicale. Exporte le CSV pour une
         analyse plus poussée ou pour la partager avec un professionnel de santé.</div>
     </div>
   </div>
@@ -406,58 +455,59 @@
 
 <div id="completionModal" class="modal-overlay hidden">
   <div class="modal-box">
-    <button type="button" class="modal-close" id="btnCompletionDismiss" title="Continuer quand même">✕</button>
+    <button type="button" class="modal-close" id="btnCompletionDismiss" data-i18n-title="titleContinueAnyway" title="Continuer quand même">✕</button>
     <div class="modal-emoji">🎉</div>
-    <h2>Bravo, test terminé !</h2>
-    <p>Les <b><span id="completionStages">5</span> paliers</b> sont complets, en
-      <b><span id="completionTime">00:00</span></b> d'effort au total.</p>
+    <h2 data-i18n="modalTitle">Bravo, test terminé !</h2>
+    <p id="completionMainText">Les <b><span id="completionStages">5</span> paliers</b> sont complets, en
+      <b><span id="completionTime">00:00</span></b> d'effort au total (récupération incluse).</p>
+    <p id="completionHRR" class="hint hidden" style="text-align:left;"></p>
     <div class="modal-actions">
-      <button class="btn-primary" id="btnCompletionStop">🏁 Arrêter et voir le résumé</button>
-      <button class="btn-secondary" id="btnCompletionExport">⬇ Exporter le CSV</button>
+      <button class="btn-primary" id="btnCompletionStop" data-i18n="btnCompletionStop">🏁 Arrêter et voir le résumé</button>
+      <button class="btn-secondary" id="btnCompletionExport" data-i18n="btnCompletionExport">⬇ Exporter le CSV</button>
     </div>
   </div>
 </div>
 
 <div id="viewAnalysis" class="hidden">
-  <div class="banner">
+  <div class="banner" data-i18n="bannerAnalysis">
     ⚠️ Analyse à but purement indicatif — repères d'entraînement généraux (zones FC classiques), pas de
     diagnostic ni d'estimation clinique (pas de VO2max). Pour toute question de santé, consulte un professionnel.
   </div>
 
   <div class="card">
-    <h2>Charger un CSV exporté</h2>
+    <h2 data-i18n="cardLoadCSV">Charger un CSV exporté</h2>
     <div class="dropzone" id="dropzone">
-      <div><b>Clique pour choisir un fichier</b> ou dépose-le ici</div>
-      <div class="hint" style="margin-top:6px;">Le CSV exporté par l'onglet "Test live" ci-contre (sections PROFIL / DONNEES / EVENEMENTS).</div>
+      <div data-i18n-html="dropzoneText"><b>Clique pour choisir un fichier</b> ou dépose-le ici</div>
+      <div class="hint" style="margin-top:6px;" data-i18n="hintDropzone">Le CSV exporté par l'onglet "Test live" ci-contre (sections PROFIL / DONNEES / EVENEMENTS).</div>
       <input type="file" id="csvFile" accept=".csv,text/csv" style="display:none;">
     </div>
     <div id="analysisFileInfo" class="hint hidden" style="margin-top:8px;"></div>
   </div>
 
   <div id="manualProfileCard" class="card hidden">
-    <h2>Profil manquant dans le CSV</h2>
-    <div class="hint">Ce fichier ne contient pas (ou pas totalement) la section PROFIL — renseigne ces valeurs pour calculer les zones FC correctement.</div>
+    <h2 data-i18n="cardMissingProfile">Profil manquant dans le CSV</h2>
+    <div class="hint" data-i18n="hintMissingProfile">Ce fichier ne contient pas (ou pas totalement) la section PROFIL — renseigne ces valeurs pour calculer les zones FC correctement.</div>
     <div class="row">
-      <div><label>FC max</label><input type="number" id="anProfHrmax" value="155" min="80" max="230"></div>
-      <div><label>FC repos (optionnel)</label><input type="number" id="anProfHrrest" value="" min="30" max="120" placeholder="bpm"></div>
+      <div><label data-i18n="lblHrMaxAnalysis">FC max</label><input type="number" id="anProfHrmax" value="155" min="80" max="230"></div>
+      <div><label data-i18n="lblHrRest">FC repos (optionnel)</label><input type="number" id="anProfHrrest" value="" min="30" max="120" placeholder="bpm"></div>
     </div>
-    <button class="btn-primary" id="btnRecompute" style="margin-top:10px;">↻ Recalculer l'analyse</button>
+    <button class="btn-primary" id="btnRecompute" style="margin-top:10px;" data-i18n="btnRecompute">↻ Recalculer l'analyse</button>
   </div>
 
   <div id="analysisResults" class="hidden">
     <div class="card">
-      <h2>Profil du test analysé</h2>
+      <h2 data-i18n="cardAnalyzedProfile">Profil du test analysé</h2>
       <div class="profile-recap" id="analysisProfileRecap"></div>
     </div>
 
     <div class="card">
-      <h2>Recommandation d'entraînement</h2>
+      <h2 data-i18n="cardRecommendation">Recommandation d'entraînement</h2>
       <div class="reco-box" id="recoBox"></div>
       <div id="recoWarnBox"></div>
     </div>
 
     <div class="card">
-      <h2>Temps passé par zone FC (sur toute la durée du test)</h2>
+      <h2 data-i18n="cardZoneTime">Temps passé par zone FC (sur toute la durée du test)</h2>
       <div class="zone-time-bar" id="zoneTimeBar"></div>
       <div class="hint" id="zoneTimeLegend" style="margin-top:8px;"></div>
     </div>
@@ -467,7 +517,7 @@
     </div>
 
     <div class="card">
-      <h2>Détail par palier</h2>
+      <h2 data-i18n="cardStageDetail">Détail par palier</h2>
       <table id="analysisTable"></table>
     </div>
   </div>
@@ -477,28 +527,395 @@
 (function(){
   // ---------- State ----------
   let hrDevice=null, hrChar=null;
-  let cadDevice=null, cadChar=null, lastCrankRevs=null, lastCrankTime=null;
-  let speedDevice=null, speedChar=null, lastWheelRevs=null, lastWheelTime=null;
+  let cadDevice=null, cadChar=null, lastCrankRevs=null, lastCrankTime=null, cadGotData=false;
+  let speedDevice=null, speedChar=null, lastWheelRevs=null, lastWheelTime=null, speedGotData=false;
   let running=false, paused=false;
   let elapsedSec=0, stageElapsedSec=0, currentStage=1;
+  let inRecovery=false, recoveryElapsedSec=0, recoveryStartHR=null, recoveryHRR={};
   let timerHandle=null;
   let currentHR=null, currentCad=null, currentSpeed=null, currentRPE=null;
   let log=[]; // {t, hr, cad, speed, resistance, rpe, stage, note}
   let events=[]; // {t, stage, label}
 
+  // ==================================================================
+  // ---------- i18n (FR/EN) ----------
+  // ==================================================================
+  let currentLang = localStorage.getItem('lang') || 'fr';
+
+  const I18N = {
+    fr: {
+      pageTitle: "Test d'Effort Progressif — Vélo",
+      h1Title: "🚴 Test d'Effort Progressif — Vélo",
+      subtitle1: "Protocole par paliers croissants pour cartographier tes zones d'entraînement (FC, vitesse, cadence)",
+      subtitle2: "🎯 Objectif : identifier la zone d'endurance et le seuil, pour repartir avec une cible d'entraînement concrète pour tes sorties.",
+      tabTest: "🚴 Test en direct",
+      tabAnalysis: "📊 Analyse d'un CSV",
+      cardProtocol: "Protocole",
+      lblNumStages: "Nb paliers",
+      lblStageDuration: "Durée/palier (min)",
+      lblResStart: "Résistance début (1-10)",
+      lblResEnd: "Résistance fin (1-10)",
+      lblAutoAdvance: "Palier suivant automatique",
+      lblRecoveryDuration: "Récupération (min)",
+      lblRecoveryResistance: "Résistance récup (1-10)",
+      hintRecovery: "Phase de retour au calme après le dernier palier (ou déclenchée manuellement) : résistance très basse, pédalage libre, pour mesurer la récupération cardiaque.",
+      cardSensors: "Capteurs Bluetooth",
+      sensorHR: "Fréquence cardiaque",
+      sensorCadence: "Cadence (Magene)",
+      sensorSpeed: "Vitesse (Magene)",
+      lblWheelCirc: "Circonférence roue (mm)",
+      hintSensors: "Les 3 capteurs se connectent en parallèle, indépendamment (3 connexions Bluetooth distinctes). Chrome/Edge desktop ou Android requis. Sélectionne bien le bon appareil dans chaque fenêtre d'appairage.",
+      cardProfile: "Profil",
+      lblAge: "Âge",
+      lblWeight: "Poids (kg)",
+      lblHeight: "Taille (cm)",
+      lblHrRest: "FC repos (optionnel)",
+      lblHrMax: "FC max (calculée, éditable)",
+      lblBmi: "IMC :",
+      cardControls: "Contrôles",
+      btnStart: "▶ Démarrer",
+      btnPause: "⏸ Pause",
+      btnResume: "▶ Reprendre",
+      btnNextStage: "⏭ Palier suivant",
+      btnRecoveryBtn: "❄ Récupération",
+      btnReset: "↺ Réinitialiser",
+      lblTotalTime: "Temps total :",
+      lblPausedSince: "⏸ En pause depuis",
+      warnHrDefault: "⚠ FC proche du maximum estimé",
+      btnStop: "■ Arrêter le test",
+      btnExportCSV: "⬇ Exporter CSV",
+      metricHR: "FC (bpm)",
+      metricCadence: "Cadence (rpm)",
+      metricSpeed: "Vitesse (km/h)",
+      metricResistance: "Résistance /10",
+      metricRPE: "Ressenti (RPE)",
+      wordStage: "Palier",
+      wordRecoveryBig: "Récupération",
+      lblStageObjective: "🎯 Objectif palier :",
+      lblResTargetLabel: "Résistance cible :",
+      lblRecoveryStartHR: "❤ FC début récup :",
+      lblVariation: "Variation :",
+      lblResApplied: "Résistance appliquée :",
+      cardRPE: "Ressenti à l'effort (RPE 1–10)",
+      rpeVeryEasy: "1 · Très facile",
+      rpeModerate: "5 · Modéré",
+      rpeMax: "10 · Épuisement max",
+      cardSymptoms: "Symptômes / observations",
+      symNormal: "Normal",
+      symBreathMild: "Essoufflement léger",
+      symBreathSevere: "Essoufflement important",
+      symChestPainBtn: "Douleur thoracique",
+      symChestPainLog: "Douleur / gêne thoracique",
+      symDizzy: "Vertiges",
+      cardSummary: "Résumé du test",
+      hintSummary: "Données brutes uniquement — pas d'interprétation médicale. Exporte le CSV pour une analyse plus poussée ou pour la partager avec un professionnel de santé.",
+      titleContinueAnyway: "Continuer quand même",
+      modalTitle: "Bravo, test terminé !",
+      completionText: "Les <b>{n} paliers</b> sont complets, en <b>{t}</b> d'effort au total (récupération incluse).",
+      btnCompletionStop: "🏁 Arrêter et voir le résumé",
+      btnCompletionExport: "⬇ Exporter le CSV",
+      bannerAnalysis: "⚠️ Analyse à but purement indicatif — repères d'entraînement généraux (zones FC classiques), pas de diagnostic ni d'estimation clinique (pas de VO2max). Pour toute question de santé, consulte un professionnel.",
+      cardLoadCSV: "Charger un CSV exporté",
+      dropzoneText: "<b>Clique pour choisir un fichier</b> ou dépose-le ici",
+      hintDropzone: 'Le CSV exporté par l\'onglet "Test live" ci-contre (sections PROFIL / DONNEES / EVENEMENTS).',
+      lblFileLoaded: "Fichier chargé : {name}",
+      cardMissingProfile: "Profil manquant dans le CSV",
+      hintMissingProfile: "Ce fichier ne contient pas (ou pas totalement) la section PROFIL — renseigne ces valeurs pour calculer les zones FC correctement.",
+      lblHrMaxAnalysis: "FC max",
+      btnRecompute: "↻ Recalculer l'analyse",
+      cardAnalyzedProfile: "Profil du test analysé",
+      cardRecommendation: "Recommandation d'entraînement",
+      cardZoneTime: "Temps passé par zone FC (sur toute la durée du test)",
+      cardStageDetail: "Détail par palier",
+
+      btnConnect: "Connecter",
+      btnConnected: "Connecté ✓",
+      wordCurrent: "Actuel",
+      wordZone: "Zone",
+      bmiUnderweight: "insuffisance pondérale",
+      bmiNormal: "corpulence normale",
+      bmiOverweight: "surpoids",
+      bmiObese: "obésité",
+      thStage: "Palier", thHrAvg: "FC moy.", thHrMax: "FC max", thCadAvg: "Cadence moy.",
+      thSpeedAvg: "Vitesse moy.", thResistance: "Résistance", thRpe: "RPE", thZone: "Zone", thDuration: "Durée",
+      stageRecoveryShort: "❄ Récup.",
+      lblTotalDuration: "Durée totale :",
+      titleDeleteEvent: "Supprimer cet événement",
+      rpeFeltLog: "Ressenti : {n}/10",
+      warnHrNear: "⚠ FC proche du maximum estimé — surveiller attentivement",
+      warnSymptom: "⚠ Symptôme signalé : {label} — envisager arrêt du test",
+      sensorLabelHR: "FC", sensorLabelCadence: "cadence", sensorLabelSpeed: "vitesse",
+      bleNotFound: "Aucun capteur {sensor} trouvé. Vérifie qu'il est allumé et à proximité.",
+      bleNetworkError: "Le capteur {sensor} ne répond pas. Rapproche-toi et réessaie.",
+      bleSecurityError: "Bluetooth bloqué par le navigateur. Utilise Chrome ou Edge, en HTTPS ou en local.",
+      bleNotSupported: "Le Bluetooth n'est pas supporté par ce navigateur. Utilise Chrome ou Edge.",
+      bleGenericError: "Connexion {sensor} impossible. Réessaie.",
+      hrrPrefix: "Récupération cardiaque depuis {hr} bpm : ",
+      hrrSegment: "{d}s → {hr} bpm ({delta})",
+      hintSensorTip: "Astuce : si tu as plusieurs capteurs Magene, connecte-les un par un — éloigne ou éteins ceux que tu ne connectes pas encore, sinon Chrome les affiche tous avec des noms illisibles (souvent juste un numéro de série) et impossibles à distinguer. L'appli essaie de détecter automatiquement le vrai type du capteur une fois connecté et te prévient en cas d'erreur.",
+      sensorLabel_speed: "vitesse", sensorLabel_cadence: "cadence", sensorLabel_hr: "FC",
+      sensorRememberedMismatch: "⚠ Ce capteur avait déjà été identifié comme capteur de {type} — vérifie que c'est le bon.",
+      sensorConfirmedCadence: "✓ Type confirmé : capteur de cadence.",
+      sensorConfirmedSpeed: "✓ Type confirmé : capteur de vitesse.",
+      sensorConfirmedCombo: "✓ Capteur combiné vitesse + cadence détecté.",
+      sensorMismatchIsSpeed: "⚠ Ce capteur semble être un capteur de VITESSE, pas de cadence. Vérifie le bon capteur ou débranche l'autre avant de réessayer.",
+      sensorMismatchIsCadence: "⚠ Ce capteur semble être un capteur de CADENCE, pas de vitesse. Vérifie le bon capteur ou débranche l'autre avant de réessayer.",
+      sensorNoCapability: "⚠ Impossible de déterminer le type de ce capteur automatiquement.",
+      sensorWatchdogNoCadence: "⚠ Aucune donnée de cadence reçue depuis 6s — ce capteur est peut-être celui de vitesse. Vérifie ou reconnecte le bon capteur.",
+      sensorWatchdogNoSpeed: "⚠ Aucune donnée de vitesse reçue depuis 6s — ce capteur est peut-être celui de cadence. Vérifie ou reconnecte le bon capteur.",
+      hrrIncomplete: "Récupération incomplète (moins de 30s enregistrées).",
+      alertNoData: "Ce CSV ne contient pas de données exploitables (section DONNEES vide ou introuvable).",
+      alertNoHR: "Ce CSV n'a pas de données de fréquence cardiaque (test probablement fait sans capteur FC connecté) — refais le test avec les capteurs branchés pour une analyse exploitable.",
+      alertReadError: "Impossible de lire ce fichier.",
+      chartHR: "FC (bpm)", chartCad: "Cadence (rpm)", chartSpeed: "Vitesse (km/h)",
+      chartHRAvg: "FC moy. (bpm)", chartCadAvg: "Cadence moy. (rpm)", chartSpeedAvg: "Vitesse moy. (km/h)",
+      lblAgeRecap: "Âge :", lblHrMaxRecap: "FC max :", manualEntrySuffix: "(saisie manuelle)",
+      lblHrRestRecap: "FC repos :", lblStagesRecap: "Paliers :",
+      recoZ2Title: "Cible zone d'endurance (Z2)",
+      recoZ2Based: "D'après le(s) palier(s) {list}, mesuré(s) directement en Z2 :",
+      recoSpeed: "🚴 Vitesse : <b>{lo}–{hi} km/h</b><br>",
+      recoCadence: "🔁 Cadence : <b>{lo}–{hi} rpm</b><br>",
+      recoHR: "❤️ FC : <b>{lo}–{hi} bpm</b>",
+      recoZ2TitleEstimate: "Cible zone d'endurance (Z2) — estimation",
+      recoZ2Interpolated: "Aucun palier n'est tombé pile en Z2 ; estimation par interpolation entre le palier {a} et le palier {b} :",
+      recoSpeedEstimate: "🚴 Vitesse estimée : <b>~{v} km/h</b><br>",
+      recoCadenceEstimate: "🔁 Cadence estimée : <b>~{v} rpm</b><br>",
+      recoHRTarget: "❤️ FC cible : <b>{lo}–{hi} bpm</b>",
+      recoNoData: "Pas assez de paliers autour de la zone d'endurance dans ce test pour estimer une vitesse/cadence fiable. Repère utilisable dès maintenant : viser une <b>FC de {lo}–{hi} bpm</b> en sortie normale. Pour affiner vitesse/cadence, refaire un test avec des paliers plus progressifs (résistance début/fin plus rapprochées, plus de paliers).",
+      recoThreshold: "⚠ <b>Palier de bascule détecté : Palier {stage}</b> ({reason}). Au-delà de ce niveau d'effort, on sort de l'endurance pure — à éviter en sortie normale, réservé aux efforts ponctuels/courts.",
+      reasonZoneEntry: "passage en {zone}, FC {hr} bpm",
+      reasonDisproportionate: "hausse de FC disproportionnée par rapport à l'effort produit (estimation, à confirmer avec un test plus progressif)",
+      incoherenceLow: "Palier {stage} : RPE faible ({rpe}/10) alors que la FC indique {zone} — à vérifier.",
+      incoherenceHigh: "Palier {stage} : RPE élevé ({rpe}/10) alors que la FC indique {zone} — à vérifier.",
+    },
+    en: {
+      pageTitle: "Progressive Effort Test — Cycling",
+      h1Title: "🚴 Progressive Effort Test — Cycling",
+      subtitle1: "Ramp-up staged protocol to map your training zones (HR, speed, cadence)",
+      subtitle2: "🎯 Goal: identify the endurance zone and threshold, so you leave with a concrete training target for your rides.",
+      tabTest: "🚴 Live test",
+      tabAnalysis: "📊 Analyze a CSV",
+      cardProtocol: "Protocol",
+      lblNumStages: "Number of stages",
+      lblStageDuration: "Duration/stage (min)",
+      lblResStart: "Starting resistance (1-10)",
+      lblResEnd: "Ending resistance (1-10)",
+      lblAutoAdvance: "Automatic next stage",
+      lblRecoveryDuration: "Recovery (min)",
+      lblRecoveryResistance: "Recovery resistance (1-10)",
+      hintRecovery: "Cool-down phase after the last stage (or triggered manually): very low resistance, free pedaling, to measure heart-rate recovery.",
+      cardSensors: "Bluetooth sensors",
+      sensorHR: "Heart rate",
+      sensorCadence: "Cadence (Magene)",
+      sensorSpeed: "Speed (Magene)",
+      lblWheelCirc: "Wheel circumference (mm)",
+      hintSensors: "The 3 sensors connect in parallel, independently (3 separate Bluetooth connections). Chrome/Edge desktop or Android required. Make sure to pick the right device in each pairing window.",
+      cardProfile: "Profile",
+      lblAge: "Age",
+      lblWeight: "Weight (kg)",
+      lblHeight: "Height (cm)",
+      lblHrRest: "Resting HR (optional)",
+      lblHrMax: "Max HR (calculated, editable)",
+      lblBmi: "BMI:",
+      cardControls: "Controls",
+      btnStart: "▶ Start",
+      btnPause: "⏸ Pause",
+      btnResume: "▶ Resume",
+      btnNextStage: "⏭ Next stage",
+      btnRecoveryBtn: "❄ Recovery",
+      btnReset: "↺ Reset",
+      lblTotalTime: "Total time:",
+      lblPausedSince: "⏸ Paused for",
+      warnHrDefault: "⚠ HR close to estimated maximum",
+      btnStop: "■ Stop test",
+      btnExportCSV: "⬇ Export CSV",
+      metricHR: "HR (bpm)",
+      metricCadence: "Cadence (rpm)",
+      metricSpeed: "Speed (km/h)",
+      metricResistance: "Resistance /10",
+      metricRPE: "Perceived effort (RPE)",
+      wordStage: "Stage",
+      wordRecoveryBig: "Recovery",
+      lblStageObjective: "🎯 Stage target:",
+      lblResTargetLabel: "Target resistance:",
+      lblRecoveryStartHR: "❤ HR at recovery start:",
+      lblVariation: "Change:",
+      lblResApplied: "Applied resistance:",
+      cardRPE: "Perceived exertion (RPE 1–10)",
+      rpeVeryEasy: "1 · Very easy",
+      rpeModerate: "5 · Moderate",
+      rpeMax: "10 · Maximal exhaustion",
+      cardSymptoms: "Symptoms / observations",
+      symNormal: "Normal",
+      symBreathMild: "Mild breathlessness",
+      symBreathSevere: "Severe breathlessness",
+      symChestPainBtn: "Chest pain",
+      symChestPainLog: "Chest pain / discomfort",
+      symDizzy: "Dizziness",
+      cardSummary: "Test summary",
+      hintSummary: "Raw data only — no medical interpretation. Export the CSV for further analysis or to share it with a healthcare professional.",
+      titleContinueAnyway: "Continue anyway",
+      modalTitle: "Well done, test complete!",
+      completionText: "The <b>{n} stages</b> are complete, in <b>{t}</b> of total effort (recovery included).",
+      btnCompletionStop: "🏁 Stop and see summary",
+      btnCompletionExport: "⬇ Export the CSV",
+      bannerAnalysis: "⚠️ For general guidance only — general training landmarks (classic HR zones), not a diagnosis or clinical estimate (no VO2max). For any health concern, consult a professional.",
+      cardLoadCSV: "Load an exported CSV",
+      dropzoneText: "<b>Click to choose a file</b> or drop it here",
+      hintDropzone: 'The CSV exported by the "Live test" tab (PROFIL / DONNEES / EVENEMENTS sections).',
+      lblFileLoaded: "File loaded: {name}",
+      cardMissingProfile: "Profile missing from the CSV",
+      hintMissingProfile: "This file does not contain (or not fully) the PROFIL section — fill in these values to compute the HR zones correctly.",
+      lblHrMaxAnalysis: "Max HR",
+      btnRecompute: "↻ Recompute analysis",
+      cardAnalyzedProfile: "Profile of the analyzed test",
+      cardRecommendation: "Training recommendation",
+      cardZoneTime: "Time spent in each HR zone (over the whole test)",
+      cardStageDetail: "Detail per stage",
+
+      btnConnect: "Connect",
+      btnConnected: "Connected ✓",
+      wordCurrent: "Current",
+      wordZone: "Zone",
+      bmiUnderweight: "underweight",
+      bmiNormal: "normal weight",
+      bmiOverweight: "overweight",
+      bmiObese: "obesity",
+      thStage: "Stage", thHrAvg: "Avg HR", thHrMax: "Max HR", thCadAvg: "Avg cadence",
+      thSpeedAvg: "Avg speed", thResistance: "Resistance", thRpe: "RPE", thZone: "Zone", thDuration: "Duration",
+      stageRecoveryShort: "❄ Recovery",
+      lblTotalDuration: "Total duration:",
+      titleDeleteEvent: "Delete this event",
+      rpeFeltLog: "Perceived effort: {n}/10",
+      warnHrNear: "⚠ HR close to estimated maximum — monitor closely",
+      warnSymptom: "⚠ Symptom reported: {label} — consider stopping the test",
+      sensorLabelHR: "HR", sensorLabelCadence: "cadence", sensorLabelSpeed: "speed",
+      bleNotFound: "No {sensor} sensor found. Check that it's on and nearby.",
+      bleNetworkError: "The {sensor} sensor isn't responding. Get closer and try again.",
+      bleSecurityError: "Bluetooth blocked by the browser. Use Chrome or Edge, over HTTPS or locally.",
+      bleNotSupported: "Bluetooth isn't supported by this browser. Use Chrome or Edge.",
+      bleGenericError: "Could not connect to {sensor}. Try again.",
+      hrrPrefix: "Heart-rate recovery from {hr} bpm: ",
+      hrrSegment: "{d}s → {hr} bpm ({delta})",
+      hrrIncomplete: "Incomplete recovery (less than 30s recorded).",
+      hintSensorTip: "Tip: if you have several Magene sensors, pair them one at a time — move away or switch off the ones you're not pairing yet, otherwise Chrome shows them all with unreadable names (often just a serial number) and no way to tell them apart. The app tries to auto-detect the real sensor type once connected and warns you if something's off.",
+      sensorLabel_speed: "speed", sensorLabel_cadence: "cadence", sensorLabel_hr: "HR",
+      sensorRememberedMismatch: "⚠ This sensor was previously identified as a {type} sensor — double-check it's the right one.",
+      sensorConfirmedCadence: "✓ Type confirmed: cadence sensor.",
+      sensorConfirmedSpeed: "✓ Type confirmed: speed sensor.",
+      sensorConfirmedCombo: "✓ Combined speed + cadence sensor detected.",
+      sensorMismatchIsSpeed: "⚠ This looks like a SPEED sensor, not cadence. Check you have the right sensor, or switch off the other one and retry.",
+      sensorMismatchIsCadence: "⚠ This looks like a CADENCE sensor, not speed. Check you have the right sensor, or switch off the other one and retry.",
+      sensorNoCapability: "⚠ Couldn't auto-detect this sensor's type.",
+      sensorWatchdogNoCadence: "⚠ No cadence data received in 6s — this might be the speed sensor. Check or reconnect the right one.",
+      sensorWatchdogNoSpeed: "⚠ No speed data received in 6s — this might be the cadence sensor. Check or reconnect the right one.",
+      alertNoData: "This CSV has no usable data (DONNEES section empty or missing).",
+      alertNoHR: "This CSV has no heart-rate data (the test was probably done without a connected HR sensor) — redo the test with sensors connected for a usable analysis.",
+      alertReadError: "Could not read this file.",
+      chartHR: "HR (bpm)", chartCad: "Cadence (rpm)", chartSpeed: "Speed (km/h)",
+      chartHRAvg: "Avg HR (bpm)", chartCadAvg: "Avg cadence (rpm)", chartSpeedAvg: "Avg speed (km/h)",
+      lblAgeRecap: "Age:", lblHrMaxRecap: "Max HR:", manualEntrySuffix: "(manual entry)",
+      lblHrRestRecap: "Resting HR:", lblStagesRecap: "Stages:",
+      recoZ2Title: "Endurance zone target (Z2)",
+      recoZ2Based: "Based on stage(s) {list}, measured directly in Z2:",
+      recoSpeed: "🚴 Speed: <b>{lo}–{hi} km/h</b><br>",
+      recoCadence: "🔁 Cadence: <b>{lo}–{hi} rpm</b><br>",
+      recoHR: "❤️ HR: <b>{lo}–{hi} bpm</b>",
+      recoZ2TitleEstimate: "Endurance zone target (Z2) — estimate",
+      recoZ2Interpolated: "No stage landed exactly in Z2; estimate by interpolation between stage {a} and stage {b}:",
+      recoSpeedEstimate: "🚴 Estimated speed: <b>~{v} km/h</b><br>",
+      recoCadenceEstimate: "🔁 Estimated cadence: <b>~{v} rpm</b><br>",
+      recoHRTarget: "❤️ Target HR: <b>{lo}–{hi} bpm</b>",
+      recoNoData: "Not enough stages around the endurance zone in this test to reliably estimate speed/cadence. Usable landmark for now: aim for an <b>HR of {lo}–{hi} bpm</b> on a normal ride. To refine speed/cadence, redo a test with more gradual stages (closer start/end resistance, more stages).",
+      recoThreshold: "⚠ <b>Threshold stage detected: Stage {stage}</b> ({reason}). Beyond this effort level, you're out of pure endurance — to avoid on a normal ride, reserved for short/occasional efforts.",
+      reasonZoneEntry: "entering {zone}, HR {hr} bpm",
+      reasonDisproportionate: "disproportionate HR rise relative to the output produced (estimate, to confirm with a more gradual test)",
+      incoherenceLow: "Stage {stage}: low RPE ({rpe}/10) while HR indicates {zone} — worth checking.",
+      incoherenceHigh: "Stage {stage}: high RPE ({rpe}/10) while HR indicates {zone} — worth checking.",
+    }
+  };
+
+  function t(key, vars){
+    let s = (I18N[currentLang] && I18N[currentLang][key] != null) ? I18N[currentLang][key] : (I18N.fr[key] != null ? I18N.fr[key] : key);
+    if (vars){ Object.keys(vars).forEach(k => { s = s.split('{'+k+'}').join(vars[k]); }); }
+    return s;
+  }
+
+  function applyStaticI18n(){
+    document.querySelectorAll('[data-i18n]').forEach(node => { node.textContent = t(node.getAttribute('data-i18n')); });
+    document.querySelectorAll('[data-i18n-html]').forEach(node => { node.innerHTML = t(node.getAttribute('data-i18n-html')); });
+    document.querySelectorAll('[data-i18n-title]').forEach(node => { node.title = t(node.getAttribute('data-i18n-title')); });
+  }
+
+  function setLang(lang){
+    currentLang = (lang === 'en') ? 'en' : 'fr';
+    localStorage.setItem('lang', currentLang);
+    document.documentElement.lang = currentLang;
+    document.title = t('pageTitle');
+    applyStaticI18n();
+    el('btnLangFR').classList.toggle('active', currentLang === 'fr');
+    el('btnLangEN').classList.toggle('active', currentLang === 'en');
+    // Refresh dynamic UI bits that depend on the language
+    if (typeof updateBMI === 'function') updateBMI();
+    if (typeof updateControlStates === 'function') updateControlStates();
+    if (typeof refreshStagePanel === 'function') refreshStagePanel();
+    if (typeof currentHR !== 'undefined' && currentHR != null && typeof updateHRDisplay === 'function') updateHRDisplay();
+    if (typeof setConnected === 'function'){
+      setConnected('hrDot','btnConnectHR', el('hrDot').classList.contains('on'));
+      setConnected('cadDot','btnConnectCad', el('cadDot').classList.contains('on'));
+      setConnected('speedDot','btnConnectSpeed', el('speedDot').classList.contains('on'));
+    }
+    if (typeof chart !== 'undefined' && chart){
+      chart.data.datasets[0].label = t('chartHR');
+      chart.data.datasets[1].label = t('chartCad');
+      chart.data.datasets[2].label = t('chartSpeed');
+      chart.update('none');
+    }
+    if (typeof lastParsedCSV !== 'undefined' && lastParsedCSV && !el('analysisResults').classList.contains('hidden')) runAnalysis(lastParsedCSV);
+  }
+
+  document.getElementById('btnLangFR').addEventListener('click', () => setLang('fr'));
+  document.getElementById('btnLangEN').addEventListener('click', () => setLang('en'));
+
+  function zoneFull(z){ return z.fullEN && currentLang === 'en' ? z.fullEN : z.full; }
+
   const zones = [
-    {name:'Z1', full:'Z1 · Échauffement', min:0.50, max:0.60, color:'#38bdf8'},
-    {name:'Z2', full:'Z2 · Endurance',    min:0.60, max:0.70, color:'#22c55e'},
-    {name:'Z3', full:'Z3 · Tempo',        min:0.70, max:0.80, color:'#eab308'},
-    {name:'Z4', full:'Z4 · Seuil',        min:0.80, max:0.90, color:'#f97316'},
-    {name:'Z5', full:'Z5 · Maximal',      min:0.90, max:1.10, color:'#ef4444'},
+    {name:'Z1', full:'Z1 · Échauffement', fullEN:'Z1 · Warm-up',   min:0.50, max:0.60, color:'#38bdf8'},
+    {name:'Z2', full:'Z2 · Endurance',    fullEN:'Z2 · Endurance', min:0.60, max:0.70, color:'#22c55e'},
+    {name:'Z3', full:'Z3 · Tempo',        fullEN:'Z3 · Tempo',     min:0.70, max:0.80, color:'#eab308'},
+    {name:'Z4', full:'Z4 · Seuil',        fullEN:'Z4 · Threshold', min:0.80, max:0.90, color:'#f97316'},
+    {name:'Z5', full:'Z5 · Maximal',      fullEN:'Z5 · Maximal',   min:0.90, max:1.10, color:'#111111'},
   ];
+
+  function zoneBounds(zi){
+    const hrmax = Number(hrmaxInput.value || 180);
+    const hrrest = Number(hrrestInput.value || 0);
+    const z = zones[zi];
+    const useKarvonen = hrrest > 0 && hrmax > hrrest;
+    const lo = Math.round(useKarvonen ? hrrest + z.min*(hrmax-hrrest) : z.min*hrmax);
+    const hi = z.max >= 1.0 ? hrmax : Math.round(useKarvonen ? hrrest + z.max*(hrmax-hrrest) : z.max*hrmax);
+    return {lo, hi};
+  }
+
+  function zoneDecimal(hr){
+    const hrmax = Number(hrmaxInput.value || 180);
+    const hrrest = Number(hrrestInput.value || 0);
+    const pct = (hrrest > 0 && hrmax > hrrest) ? (hr-hrrest)/(hrmax-hrrest) : hr/hrmax;
+    let zi = 0;
+    for (let i=zones.length-1;i>=0;i--){ if (pct >= zones[i].min){ zi=i; break; } }
+    const z = zones[zi];
+    const span = Math.max(0.0001, z.max - z.min);
+    let frac = Math.floor(((pct - z.min)/span) * 10) / 10;
+    frac = Math.max(0, Math.min(0.9, frac));
+    return {zi, label: (zi+1) + '.' + Math.round(frac*10)};
+  }
 
   const el = id => document.getElementById(id);
   const ageInput=el('age'), weightInput=el('weight'), heightInput=el('height'), hrrestInput=el('hrrest'), hrmaxInput=el('hrmax');
   const numStagesInput=el('numStages'), stageDurationInput=el('stageDuration');
   const resStartInput=el('resStart'), resEndInput=el('resEnd'), resInput=el('resInput');
   const autoAdvanceInput=el('autoAdvance'), wheelCircInput=el('wheelCirc');
+  const recoveryDurationInput=el('recoveryDuration'), recoveryResistanceInput=el('recoveryResistance');
 
   ageInput.addEventListener('input', () => { hrmaxInput.value = Math.round(220 - Number(ageInput.value || 0)); });
   [weightInput, heightInput].forEach(i => i.addEventListener('input', updateBMI));
@@ -506,11 +923,11 @@
     const w = Number(weightInput.value), h = Number(heightInput.value)/100;
     if (w>0 && h>0){
       const bmi = w/(h*h);
-      let cat = 'normal';
-      if (bmi < 18.5) cat='insuffisance pondérale';
-      else if (bmi < 25) cat='corpulence normale';
-      else if (bmi < 30) cat='surpoids';
-      else cat='obésité';
+      let cat;
+      if (bmi < 18.5) cat=t('bmiUnderweight');
+      else if (bmi < 25) cat=t('bmiNormal');
+      else if (bmi < 30) cat=t('bmiOverweight');
+      else cat=t('bmiObese');
       el('bmiValue').textContent = bmi.toFixed(1) + ' (' + cat + ')';
     } else { el('bmiValue').textContent = '--'; }
   }
@@ -527,7 +944,7 @@
       document.querySelectorAll('.rpe-btn').forEach(x=>{x.classList.remove('active'); x.style.background='';});
       b.classList.add('active'); b.style.background = rpeColors[i-1];
       el('rpeValue').textContent = i + '/10';
-      logEvent('Ressenti : ' + i + '/10');
+      logEvent(t('rpeFeltLog', {n:i}));
     });
     rpeRow.appendChild(b);
   }
@@ -535,11 +952,11 @@
   // ---------- Symptom buttons ----------
   document.querySelectorAll('.symptom-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      const label = btn.dataset.label;
+      const label = t(btn.dataset.labelkey);
       logEvent(label);
       if (btn.classList.contains('warn')){
         el('hrWarning').classList.remove('hidden');
-        el('hrWarning').textContent = '⚠ Symptôme signalé : ' + label + ' — envisager arrêt du test';
+        el('hrWarning').textContent = t('warnSymptom', {label});
       }
     });
   });
@@ -552,8 +969,8 @@
     const item = document.createElement('div');
     item.className='event-item';
     item.dataset.id = id;
-    item.innerHTML = '<span>'+label+'</span><span class="event-tag">Palier '+currentStage+' · '+fmtTime(elapsedSec)+
-      ' <button type="button" class="event-del-btn" data-id="'+id+'" title="Supprimer cet événement">✕</button></span>';
+    item.innerHTML = '<span>'+label+'</span><span class="event-tag">'+t('wordStage')+' '+currentStage+' · '+fmtTime(elapsedSec)+
+      ' <button type="button" class="event-del-btn" data-id="'+id+'" title="'+t('titleDeleteEvent')+'">✕</button></span>';
     feed.prepend(item);
     lastEventNote = label;
   }
@@ -587,9 +1004,9 @@
   const chart = new Chart(ctx, {
     type: 'line',
     data: { labels: [], datasets: [
-      {label:'FC (bpm)', data:[], borderColor:'#ef4444', backgroundColor:'rgba(239,68,68,0.08)', yAxisID:'y', tension:0.25, pointRadius:0, borderWidth:2},
-      {label:'Cadence (rpm)', data:[], borderColor:'#2563eb', backgroundColor:'rgba(37,99,235,0.06)', yAxisID:'y1', tension:0.25, pointRadius:0, borderWidth:2},
-      {label:'Vitesse (km/h)', data:[], borderColor:'#16a34a', backgroundColor:'rgba(22,163,74,0.06)', yAxisID:'y1', tension:0.25, pointRadius:0, borderWidth:2, hidden:true},
+      {label:t('chartHR'), data:[], borderColor:'#ef4444', backgroundColor:'rgba(239,68,68,0.08)', yAxisID:'y', tension:0.25, pointRadius:0, borderWidth:2},
+      {label:t('chartCad'), data:[], borderColor:'#2563eb', backgroundColor:'rgba(37,99,235,0.06)', yAxisID:'y1', tension:0.25, pointRadius:0, borderWidth:2},
+      {label:t('chartSpeed'), data:[], borderColor:'#16a34a', backgroundColor:'rgba(22,163,74,0.06)', yAxisID:'y1', tension:0.25, pointRadius:0, borderWidth:2, hidden:true},
     ]},
     options: {
       animation:false, responsive:true, maintainAspectRatio:false, interaction:{mode:'index', intersect:false},
@@ -607,15 +1024,55 @@
     const name = e && e.name;
     const msg = (e && e.message) || '';
     if (name === 'NotFoundError' && /cancel/i.test(msg)) return null; // l'utilisateur a fermé la fenêtre, rien à dire
-    if (name === 'NotFoundError') return 'Aucun capteur ' + sensorLabel + ' trouvé. Vérifie qu\'il est allumé et à proximité.';
-    if (name === 'NetworkError') return 'Le capteur ' + sensorLabel + ' ne répond pas. Rapproche-toi et réessaie.';
-    if (name === 'SecurityError') return 'Bluetooth bloqué par le navigateur. Utilise Chrome ou Edge, en HTTPS ou en local.';
-    if (!navigator.bluetooth) return 'Le Bluetooth n\'est pas supporté par ce navigateur. Utilise Chrome ou Edge.';
-    return 'Connexion ' + sensorLabel + ' impossible. Réessaie.';
+    if (name === 'NotFoundError') return t('bleNotFound', {sensor: sensorLabel});
+    if (name === 'NetworkError') return t('bleNetworkError', {sensor: sensorLabel});
+    if (name === 'SecurityError') return t('bleSecurityError');
+    if (!navigator.bluetooth) return t('bleNotSupported');
+    return t('bleGenericError', {sensor: sensorLabel});
+  }
+
+  // ---------- Bluetooth: capteurs, aide au type (Astuce ci-dessous) ----------
+  function setSensorHint(id, text, cls){
+    const elx = el(id);
+    if (!elx) return;
+    elx.textContent = text || '';
+    elx.classList.remove('ok','warn');
+    if (cls) elx.classList.add(cls);
+  }
+
+  // Lit la caractéristique CSC Feature (0x2A5C) exposée par le capteur pour connaître
+  // ses capacités réelles (roue = vitesse, pédalier = cadence), indépendamment du nom
+  // Bluetooth affiché par Chrome (souvent un simple numéro de série illisible).
+  async function detectCscCapability(service){
+    try{
+      const featChar = await service.getCharacteristic('csc_feature');
+      const value = await featChar.readValue();
+      const flags = value.getUint16(0, true);
+      return { wheelSupported: !!(flags & 0x1), crankSupported: !!(flags & 0x2) };
+    }catch(e){
+      return null; // capteur qui n'expose pas cette caractéristique : on se rabat sur le watchdog de données
+    }
+  }
+
+  function rememberSensorType(deviceId, type){
+    if (!deviceId) return;
+    try{
+      const map = JSON.parse(localStorage.getItem('sensorTypes') || '{}');
+      map[deviceId] = type;
+      localStorage.setItem('sensorTypes', JSON.stringify(map));
+    }catch(e){}
+  }
+  function recallSensorType(deviceId){
+    if (!deviceId) return null;
+    try{
+      const map = JSON.parse(localStorage.getItem('sensorTypes') || '{}');
+      return map[deviceId] || null;
+    }catch(e){ return null; }
   }
 
   // ---------- Bluetooth: Heart Rate ----------
   el('btnConnectHR').addEventListener('click', async () => {
+    setSensorHint('hrSensorHint', '', null);
     try{
       hrDevice = await navigator.bluetooth.requestDevice({filters:[{services:['heart_rate']}], optionalServices:['battery_service']});
       const server = await hrDevice.gatt.connect();
@@ -624,8 +1081,9 @@
       await hrChar.startNotifications();
       hrChar.addEventListener('characteristicvaluechanged', onHRData);
       setConnected('hrDot','btnConnectHR',true);
+      rememberSensorType(hrDevice.id, 'hr');
       hrDevice.addEventListener('gattserverdisconnected', () => setConnected('hrDot','btnConnectHR',false));
-    }catch(e){ console.error(e); const msg = explainBleError('FC', e); if (msg) alert(msg); }
+    }catch(e){ console.error(e); const msg = explainBleError(t('sensorLabelHR'), e); if (msg) alert(msg); }
   });
   function onHRData(event){
     const value = event.target.value;
@@ -636,8 +1094,13 @@
 
   // ---------- Bluetooth: Cadence sensor ----------
   el('btnConnectCad').addEventListener('click', async () => {
+    setSensorHint('cadSensorHint', '', null);
     try{
       cadDevice = await navigator.bluetooth.requestDevice({filters:[{services:['cycling_speed_and_cadence']}], optionalServices:['battery_service']});
+      const remembered = recallSensorType(cadDevice.id);
+      if (remembered && remembered !== 'cadence' && remembered !== 'combo'){
+        setSensorHint('cadSensorHint', t('sensorRememberedMismatch', {type: t('sensorLabel_' + remembered)}), 'warn');
+      }
       const server = await cadDevice.gatt.connect();
       const service = await server.getPrimaryService('cycling_speed_and_cadence');
       cadChar = await service.getCharacteristic('csc_measurement');
@@ -645,11 +1108,39 @@
       cadChar.addEventListener('characteristicvaluechanged', onCadenceCSC);
       setConnected('cadDot','btnConnectCad',true);
       cadDevice.addEventListener('gattserverdisconnected', () => setConnected('cadDot','btnConnectCad',false));
-    }catch(e){ console.error(e); const msg = explainBleError('cadence', e); if (msg) alert(msg); }
+
+      cadGotData = false;
+      const cap = await detectCscCapability(service);
+      if (cap){
+        if (cap.crankSupported && !cap.wheelSupported){
+          setSensorHint('cadSensorHint', t('sensorConfirmedCadence'), 'ok');
+          rememberSensorType(cadDevice.id, 'cadence');
+        } else if (cap.wheelSupported && !cap.crankSupported){
+          setSensorHint('cadSensorHint', t('sensorMismatchIsSpeed'), 'warn');
+          rememberSensorType(cadDevice.id, 'speed');
+        } else if (cap.wheelSupported && cap.crankSupported){
+          setSensorHint('cadSensorHint', t('sensorConfirmedCombo'), 'ok');
+          rememberSensorType(cadDevice.id, 'combo');
+        } else {
+          setSensorHint('cadSensorHint', t('sensorNoCapability'), 'warn');
+        }
+      } else {
+        setTimeout(() => {
+          if (!cadGotData && cadDevice && cadDevice.gatt && cadDevice.gatt.connected){
+            setSensorHint('cadSensorHint', t('sensorWatchdogNoCadence'), 'warn');
+          }
+        }, 6000);
+      }
+    }catch(e){ console.error(e); const msg = explainBleError(t('sensorLabelCadence'), e); if (msg) alert(msg); }
   });
   function onCadenceCSC(event){
     const {crankPresent, crankRevs, crankTime} = parseCSC(event.target.value);
     if (!crankPresent) return;
+    if (!cadGotData){
+      cadGotData = true;
+      setSensorHint('cadSensorHint', t('sensorConfirmedCadence'), 'ok');
+      rememberSensorType(cadDevice && cadDevice.id, 'cadence');
+    }
     if (lastCrankRevs !== null){
       let dRevs = crankRevs - lastCrankRevs; if (dRevs<0) dRevs += 65536;
       let dTime = crankTime - lastCrankTime; if (dTime<0) dTime += 65536;
@@ -660,8 +1151,13 @@
 
   // ---------- Bluetooth: Speed sensor ----------
   el('btnConnectSpeed').addEventListener('click', async () => {
+    setSensorHint('speedSensorHint', '', null);
     try{
       speedDevice = await navigator.bluetooth.requestDevice({filters:[{services:['cycling_speed_and_cadence']}], optionalServices:['battery_service']});
+      const remembered = recallSensorType(speedDevice.id);
+      if (remembered && remembered !== 'speed' && remembered !== 'combo'){
+        setSensorHint('speedSensorHint', t('sensorRememberedMismatch', {type: t('sensorLabel_' + remembered)}), 'warn');
+      }
       const server = await speedDevice.gatt.connect();
       const service = await server.getPrimaryService('cycling_speed_and_cadence');
       speedChar = await service.getCharacteristic('csc_measurement');
@@ -669,11 +1165,39 @@
       speedChar.addEventListener('characteristicvaluechanged', onSpeedCSC);
       setConnected('speedDot','btnConnectSpeed',true);
       speedDevice.addEventListener('gattserverdisconnected', () => setConnected('speedDot','btnConnectSpeed',false));
-    }catch(e){ console.error(e); const msg = explainBleError('vitesse', e); if (msg) alert(msg); }
+
+      speedGotData = false;
+      const cap = await detectCscCapability(service);
+      if (cap){
+        if (cap.wheelSupported && !cap.crankSupported){
+          setSensorHint('speedSensorHint', t('sensorConfirmedSpeed'), 'ok');
+          rememberSensorType(speedDevice.id, 'speed');
+        } else if (cap.crankSupported && !cap.wheelSupported){
+          setSensorHint('speedSensorHint', t('sensorMismatchIsCadence'), 'warn');
+          rememberSensorType(speedDevice.id, 'cadence');
+        } else if (cap.wheelSupported && cap.crankSupported){
+          setSensorHint('speedSensorHint', t('sensorConfirmedCombo'), 'ok');
+          rememberSensorType(speedDevice.id, 'combo');
+        } else {
+          setSensorHint('speedSensorHint', t('sensorNoCapability'), 'warn');
+        }
+      } else {
+        setTimeout(() => {
+          if (!speedGotData && speedDevice && speedDevice.gatt && speedDevice.gatt.connected){
+            setSensorHint('speedSensorHint', t('sensorWatchdogNoSpeed'), 'warn');
+          }
+        }, 6000);
+      }
+    }catch(e){ console.error(e); const msg = explainBleError(t('sensorLabelSpeed'), e); if (msg) alert(msg); }
   });
   function onSpeedCSC(event){
     const {wheelPresent, wheelRevs, wheelTime} = parseCSC(event.target.value);
     if (!wheelPresent) return;
+    if (!speedGotData){
+      speedGotData = true;
+      setSensorHint('speedSensorHint', t('sensorConfirmedSpeed'), 'ok');
+      rememberSensorType(speedDevice && speedDevice.id, 'speed');
+    }
     if (lastWheelRevs !== null){
       let dRevs = wheelRevs - lastWheelRevs; if (dRevs<0) dRevs += 4294967296;
       let dTime = wheelTime - lastWheelTime; if (dTime<0) dTime += 65536;
@@ -699,7 +1223,7 @@
 
   function setConnected(dotId, btnId, on){
     el(dotId).classList.toggle('on', on);
-    el(btnId).textContent = on ? 'Connecté ✓' : 'Connecter';
+    el(btnId).textContent = on ? t('btnConnected') : t('btnConnect');
     el(btnId).classList.toggle('connected', on);
   }
 
@@ -718,13 +1242,16 @@
     if (currentHR == null) return;
     el('hrValue').textContent = currentHR;
     const z = currentZone(currentHR);
-    el('zonePill').textContent = z.full;
+    const dec = zoneDecimal(currentHR);
+    const b = zoneBounds(dec.zi);
+    const zoneLabel = (zoneFull(z).split('·')[1] || '').trim();
+    el('zonePill').innerHTML = t('wordCurrent') + ' · ' + t('wordZone') + ' ' + dec.label + '<br><span style="font-weight:400; opacity:0.85;">' + zoneLabel + ' · ' + b.lo + '–' + b.hi + ' bpm</span>';
     el('zonePill').style.background = z.color;
     el('hrCard').style.borderColor = z.color;
     const hrmax = Number(hrmaxInput.value || 180);
     if (currentHR / hrmax >= 0.92){
       el('hrWarning').classList.remove('hidden');
-      el('hrWarning').textContent = '⚠ FC proche du maximum estimé — surveiller attentivement';
+      el('hrWarning').textContent = t('warnHrNear');
     } else { el('hrWarning').classList.add('hidden'); }
   }
   function updateCadDisplay(){ el('cadValue').textContent = currentCad != null ? currentCad : '--'; }
@@ -745,6 +1272,33 @@
   function refreshStagePanel(){
     const total = Number(numStagesInput.value || 1);
     const durationSec = Number(stageDurationInput.value || 3) * 60;
+
+    if (inRecovery){
+      el('stageHeaderNormal').classList.add('hidden');
+      el('stageHeaderRecovery').classList.remove('hidden');
+      el('stageTargetsNormal').classList.add('hidden');
+      el('stageTargetsRecovery').classList.remove('hidden');
+      const recDurationSec = Number(recoveryDurationInput.value || 3) * 60;
+      const remaining = Math.max(0, recDurationSec - recoveryElapsedSec);
+      el('recoveryTimer').textContent = fmtTime(remaining);
+      const pct = Math.min(100, (recoveryElapsedSec/recDurationSec)*100);
+      el('stageProgress').style.width = pct + '%';
+      el('stageProgress').style.background = '#111111';
+      el('stageProgressPct').textContent = Math.round(pct) + '%';
+      el('recoveryStartHRLabel').textContent = recoveryStartHR!=null ? recoveryStartHR : '--';
+      if (recoveryStartHR!=null && currentHR!=null){
+        const delta = currentHR - recoveryStartHR;
+        el('recoveryDeltaLabel').textContent = (delta<=0?'':'+') + delta + ' bpm';
+      } else { el('recoveryDeltaLabel').textContent = '--'; }
+      renderStageOverview(total, durationSec);
+      return;
+    }
+
+    el('stageHeaderNormal').classList.remove('hidden');
+    el('stageHeaderRecovery').classList.add('hidden');
+    el('stageTargetsNormal').classList.remove('hidden');
+    el('stageTargetsRecovery').classList.add('hidden');
+    el('stageProgress').style.background = '';
     el('stageNum').textContent = currentStage;
     el('stageTotal').textContent = total;
     const remaining = Math.max(0, durationSec - stageElapsedSec);
@@ -753,10 +1307,23 @@
     el('stageProgress').style.width = pct + '%';
     el('stageProgressPct').textContent = Math.round(pct) + '%';
     const zi = stageTargetZoneIndex(currentStage, total);
-    el('stageZoneTarget').textContent = zones[zi].full;
+    const zb = zoneBounds(zi);
+    el('stageZoneTarget').textContent = zoneFull(zones[zi]) + ' (' + zb.lo + '–' + zb.hi + ' bpm)';
     const tr = targetResistance(currentStage, total);
     el('stageResTarget').textContent = tr;
     renderStageOverview(total, durationSec);
+  }
+
+  function startRecovery(){
+    if (!running || inRecovery) return;
+    inRecovery = true;
+    recoveryElapsedSec = 0;
+    recoveryStartHR = currentHR;
+    recoveryHRR = {};
+    resInput.value = Number(recoveryResistanceInput.value || 1);
+    beep();
+    refreshStagePanel();
+    updateControlStates();
   }
 
   function renderStageOverview(total, durationSec){
@@ -769,7 +1336,7 @@
       let fillPct = 0;
       if (s < currentStage) { fillPct = 100; seg.classList.add('done'); }
       else if (s === currentStage) { fillPct = Math.min(100, (stageElapsedSec/durationSec)*100); seg.classList.add('current'); }
-      seg.title = 'Palier ' + s + ' · ' + zone.full;
+      seg.title = t('wordStage') + ' ' + s + ' · ' + zoneFull(zone);
       seg.innerHTML = '<div class="stage-seg-fill" style="width:' + fillPct + '%; background:' + zone.color + ';"></div>' +
         '<span class="stage-seg-num">' + s + '</span>';
       wrap.appendChild(seg);
@@ -800,18 +1367,31 @@
       el('pauseTimer').textContent = fmtTime(pauseElapsedSec);
       return;
     }
-    elapsedSec += 1; stageElapsedSec += 1;
+    elapsedSec += 1;
     el('totalTime').textContent = fmtTime(elapsedSec);
 
-    const durationSec = Number(stageDurationInput.value || 3) * 60;
-    if (autoAdvanceInput.checked && stageElapsedSec >= durationSec){ advanceStage(); }
+    if (inRecovery){
+      recoveryElapsedSec += 1;
+      if (currentHR!=null){
+        [30,60,120].forEach(d => {
+          if (recoveryElapsedSec===d && recoveryHRR[d]===undefined) recoveryHRR[d] = currentHR;
+        });
+      }
+      const recDurationSec = Number(recoveryDurationInput.value || 3) * 60;
+      if (recoveryElapsedSec >= recDurationSec && !testCompleted){ beep(); showCompletionModal(); }
+    } else {
+      stageElapsedSec += 1;
+      const durationSec = Number(stageDurationInput.value || 3) * 60;
+      if (autoAdvanceInput.checked && stageElapsedSec >= durationSec){ advanceStage(); }
+    }
     refreshStagePanel();
 
     const resistance = Number(resInput.value || 0);
     el('resValue').textContent = resistance || '--';
 
     const zoneName = currentHR!=null ? currentZone(currentHR).name : '';
-    log.push({t:elapsedSec, hr:currentHR, cad:currentCad, speed:currentSpeed, resistance, rpe:currentRPE, stage:currentStage, zone:zoneName, note: lastEventNote});
+    const stageTag = inRecovery ? 'R' : currentStage;
+    log.push({t:elapsedSec, hr:currentHR, cad:currentCad, speed:currentSpeed, resistance, rpe:currentRPE, stage:stageTag, zone:zoneName, note: lastEventNote});
     lastEventNote = '';
     chart.data.labels.push(fmtTime(elapsedSec));
     chart.data.datasets[0].data.push(currentHR);
@@ -828,8 +1408,8 @@
     if (currentStage < total){
       currentStage += 1; stageElapsedSec = 0; beep();
       resInput.value = targetResistance(currentStage, total);
-    } else if (!testCompleted) {
-      beep(); showCompletionModal();
+    } else if (!inRecovery && !testCompleted) {
+      startRecovery();
     }
   }
 
@@ -839,8 +1419,18 @@
     testCompleted = true;
     paused = true;
     updateControlStates();
-    el('completionStages').textContent = Number(numStagesInput.value || 1);
-    el('completionTime').textContent = fmtTime(elapsedSec);
+    el('completionMainText').innerHTML = t('completionText', {n: Number(numStagesInput.value || 1), t: fmtTime(elapsedSec)});
+    const hrrBox = el('completionHRR');
+    if (hrrBox){
+      if (recoveryStartHR!=null && Object.keys(recoveryHRR).length){
+        let html = t('hrrPrefix', {hr: recoveryStartHR});
+        html += [30,60,120].map(d => recoveryHRR[d]!==undefined ? t('hrrSegment', {d, hr: recoveryHRR[d], delta: (recoveryHRR[d]-recoveryStartHR)}) : null).filter(Boolean).join(' · ');
+        hrrBox.textContent = html || t('hrrIncomplete');
+        hrrBox.classList.remove('hidden');
+      } else {
+        hrrBox.classList.add('hidden');
+      }
+    }
     el('completionModal').classList.remove('hidden');
   }
   function hideCompletionModal(){ el('completionModal').classList.add('hidden'); }
@@ -852,9 +1442,10 @@
   function updateControlStates(){
     el('btnStart').disabled = running;
     el('btnPause').disabled = !running;
-    el('btnPause').textContent = paused ? '▶ Reprendre' : '⏸ Pause';
+    el('btnPause').textContent = paused ? t('btnResume') : t('btnPause');
     el('btnPause').classList.toggle('paused-active', paused);
-    el('btnNextStage').disabled = !running;
+    el('btnNextStage').disabled = !running || inRecovery;
+    el('btnRecovery').disabled = !running || inRecovery;
     el('btnStop').disabled = !running;
     el('pauseTimerWrap').classList.toggle('hidden', !paused);
   }
@@ -862,9 +1453,11 @@
   el('btnStart').addEventListener('click', () => {
     if (running) return;
     running=true; paused=false; pauseElapsedSec=0; testCompleted=false;
+    inRecovery=false; recoveryElapsedSec=0; recoveryStartHR=null; recoveryHRR={};
     timerHandle=setInterval(tick,1000);
     el('summaryCard').classList.add('hidden');
     hideCompletionModal();
+    refreshStagePanel();
     updateControlStates();
   });
   el('btnPause').addEventListener('click', () => {
@@ -874,12 +1467,16 @@
     updateControlStates();
   });
   el('btnNextStage').addEventListener('click', () => {
-    if (!running) return;
+    if (!running || inRecovery) return;
     advanceStage(); refreshStagePanel();
+  });
+  el('btnRecovery').addEventListener('click', () => {
+    startRecovery();
   });
   el('btnReset').addEventListener('click', () => {
     running=false; paused=false; pauseElapsedSec=0; testCompleted=false; clearInterval(timerHandle);
     elapsedSec=0; stageElapsedSec=0; currentStage=1; log=[]; events=[];
+    inRecovery=false; recoveryElapsedSec=0; recoveryStartHR=null; recoveryHRR={};
     chart.data.labels=[]; chart.data.datasets.forEach(d=>d.data=[]);
     chart.update();
     el('totalTime').textContent='00:00';
@@ -913,16 +1510,17 @@
     });
     const avg = arr => arr.length ? (arr.reduce((a,b)=>a+b,0)/arr.length) : null;
     const max = arr => arr.length ? Math.max(...arr) : null;
-    let html = '<tr><th>Palier</th><th>FC moy.</th><th>FC max</th><th>Cadence moy.</th><th>Vitesse moy.</th><th>Résistance</th><th>RPE</th></tr>';
-    Object.keys(stages).sort((a,b)=>a-b).forEach(s => {
+    let html = `<tr><th>${t('thStage')}</th><th>${t('thHrAvg')}</th><th>${t('thHrMax')}</th><th>${t('thCadAvg')}</th><th>${t('thSpeedAvg')}</th><th>${t('thResistance')}</th><th>${t('thRpe')}</th></tr>`;
+    Object.keys(stages).sort((a,b)=> a==='R' ? 1 : b==='R' ? -1 : a-b).forEach(s => {
       const d = stages[s];
-      html += `<tr><td>${s}</td><td>${avg(d.hr)!=null?Math.round(avg(d.hr)):'--'}</td><td>${max(d.hr)!=null?max(d.hr):'--'}</td>`+
+      const label = s==='R' ? t('stageRecoveryShort') : s;
+      html += `<tr><td>${label}</td><td>${avg(d.hr)!=null?Math.round(avg(d.hr)):'--'}</td><td>${max(d.hr)!=null?max(d.hr):'--'}</td>`+
               `<td>${avg(d.cad)!=null?Math.round(avg(d.cad)):'--'}</td><td>${avg(d.speed)!=null?avg(d.speed).toFixed(1):'--'}</td>`+
               `<td>${d.res.length?d.res[d.res.length-1]:'--'}</td><td>${d.rpe!=null?d.rpe:'--'}</td></tr>`;
     });
     const allHR = log.filter(r=>r.hr!=null).map(r=>r.hr);
     html += `<tr><td><b>Total</b></td><td>${avg(allHR)!=null?Math.round(avg(allHR)):'--'}</td><td>${max(allHR)!=null?max(allHR):'--'}</td>`+
-            `<td colspan="4">Durée totale : ${fmtTime(elapsedSec)}</td></tr>`;
+            `<td colspan="4">${t('lblTotalDuration')} ${fmtTime(elapsedSec)}</td></tr>`;
     el('summaryTable').innerHTML = html;
     el('summaryCard').classList.remove('hidden');
   }
@@ -939,6 +1537,8 @@
     csv += `resistance_fin,${resEndInput.value}\n`;
     csv += `nb_paliers,${numStagesInput.value}\n`;
     csv += `duree_palier_min,${stageDurationInput.value}\n`;
+    csv += `duree_recuperation_min,${recoveryDurationInput.value}\n`;
+    csv += `resistance_recuperation,${recoveryResistanceInput.value}\n`;
     csv += '\nDONNEES\n';
     csv += 'temps_s,palier,fc_bpm,zone,cadence_rpm,vitesse_kmh,resistance,rpe,note\n';
     log.forEach(r => {
@@ -992,11 +1592,11 @@
     const reader = new FileReader();
     reader.onload = () => {
       el('analysisFileInfo').classList.remove('hidden');
-      el('analysisFileInfo').textContent = 'Fichier chargé : ' + file.name;
+      el('analysisFileInfo').textContent = t('lblFileLoaded', {name: file.name});
       lastParsedCSV = parseExportedCSV(reader.result);
       runAnalysis(lastParsedCSV);
     };
-    reader.onerror = () => alert('Impossible de lire ce fichier.');
+    reader.onerror = () => alert(t('alertReadError'));
     reader.readAsText(file, 'utf-8');
   }
 
@@ -1070,7 +1670,7 @@
     if (!dataRows.length){
       el('analysisResults').classList.add('hidden');
       el('manualProfileCard').classList.add('hidden');
-      alert("Ce CSV ne contient pas de données exploitables (section DONNEES vide ou introuvable).");
+      alert(t('alertNoData'));
       return;
     }
 
@@ -1100,7 +1700,7 @@
     const hasHR = rows.some(r => r.hr != null);
     if (!hasHR){
       el('analysisResults').classList.add('hidden');
-      alert("Ce CSV n'a pas de données de fréquence cardiaque (test probablement fait sans capteur FC connecté) — refais le test avec les capteurs branchés pour une analyse exploitable.");
+      alert(t('alertNoHR'));
       return;
     }
 
@@ -1141,7 +1741,7 @@
     for (let i=1;i<stages.length;i++){
       const prev = stages[i-1], cur = stages[i];
       if (zi(cur.zone) >= 3 && zi(prev.zone) < 3){ // entrée en Z4/Z5
-        thresholdStage = cur; thresholdReason = 'passage en ' + cur.zone.full + ', FC ' + Math.round(cur.avgHR) + ' bpm'; break;
+        thresholdStage = cur; thresholdReason = t('reasonZoneEntry', {zone: zoneFull(cur.zone), hr: Math.round(cur.avgHR)}); break;
       }
     }
     if (!thresholdStage){
@@ -1161,7 +1761,7 @@
       }
       if (bestIdx >= 0){
         thresholdStage = stages[bestIdx];
-        thresholdReason = "hausse de FC disproportionnée par rapport à l'effort produit (estimation, à confirmer avec un test plus progressif)";
+        thresholdReason = t('reasonDisproportionate');
       }
     }
 
@@ -1170,8 +1770,8 @@
     stages.forEach(s => {
       if (s.rpe == null || !s.zone) return;
       const idx = zi(s.zone);
-      if (s.rpe <= 4 && idx >= 3) incoherences.push('Palier ' + s.stage + ' : RPE faible (' + s.rpe + '/10) alors que la FC indique ' + s.zone.name + ' — à vérifier.');
-      if (s.rpe >= 8 && idx <= 1) incoherences.push('Palier ' + s.stage + ' : RPE élevé (' + s.rpe + '/10) alors que la FC indique ' + s.zone.name + ' — à vérifier.');
+      if (s.rpe <= 4 && idx >= 3) incoherences.push(t('incoherenceLow', {stage: s.stage, rpe: s.rpe, zone: s.zone.name}));
+      if (s.rpe >= 8 && idx <= 1) incoherences.push(t('incoherenceHigh', {stage: s.stage, rpe: s.rpe, zone: s.zone.name}));
     });
 
     // Recommandation Z2 (endurance)
@@ -1181,12 +1781,12 @@
       const speeds = z2Stages.map(s=>s.avgSpeed).filter(v=>v!=null);
       const cads = z2Stages.map(s=>s.avgCad).filter(v=>v!=null);
       const hrs = z2Stages.map(s=>s.avgHR);
-      recoHtml = '<div class="reco-title">Cible zone d\'endurance (Z2)</div>' +
-        '<div>D\'après le(s) palier(s) ' + z2Stages.map(s=>s.stage).join(', ') + ', mesuré(s) directement en Z2 :</div>' +
+      recoHtml = '<div class="reco-title">' + t('recoZ2Title') + '</div>' +
+        '<div>' + t('recoZ2Based', {list: z2Stages.map(s=>s.stage).join(', ')}) + '</div>' +
         '<div style="margin-top:8px;">' +
-        (speeds.length ? '🚴 Vitesse : <b>' + Math.round(Math.min(...speeds)) + '–' + Math.round(Math.max(...speeds)) + ' km/h</b><br>' : '') +
-        (cads.length ? '🔁 Cadence : <b>' + Math.round(Math.min(...cads)) + '–' + Math.round(Math.max(...cads)) + ' rpm</b><br>' : '') +
-        '❤️ FC : <b>' + Math.round(Math.min(...hrs)) + '–' + Math.round(Math.max(...hrs)) + ' bpm</b>' +
+        (speeds.length ? t('recoSpeed', {lo: Math.round(Math.min(...speeds)), hi: Math.round(Math.max(...speeds))}) : '') +
+        (cads.length ? t('recoCadence', {lo: Math.round(Math.min(...cads)), hi: Math.round(Math.max(...cads))}) : '') +
+        t('recoHR', {lo: Math.round(Math.min(...hrs)), hi: Math.round(Math.max(...hrs))}) +
         '</div>';
     } else {
       // interpolation entre les deux paliers qui encadrent la borne basse de Z2
@@ -1207,24 +1807,21 @@
         const est = (a,b) => (a!=null && b!=null) ? (a + frac*(b-a)) : null;
         const estSpeed = est(bracket.prev.avgSpeed, bracket.cur.avgSpeed);
         const estCad = est(bracket.prev.avgCad, bracket.cur.avgCad);
-        recoHtml = '<div class="reco-title">Cible zone d\'endurance (Z2) — estimation</div>' +
-          '<div>Aucun palier n\'est tombé pile en Z2 ; estimation par interpolation entre le palier ' + bracket.prev.stage + ' et le palier ' + bracket.cur.stage + ' :</div>' +
+        recoHtml = '<div class="reco-title">' + t('recoZ2TitleEstimate') + '</div>' +
+          '<div>' + t('recoZ2Interpolated', {a: bracket.prev.stage, b: bracket.cur.stage}) + '</div>' +
           '<div style="margin-top:8px;">' +
-          (estSpeed!=null ? '🚴 Vitesse estimée : <b>~' + Math.round(estSpeed) + ' km/h</b><br>' : '') +
-          (estCad!=null ? '🔁 Cadence estimée : <b>~' + Math.round(estCad) + ' rpm</b><br>' : '') +
-          '❤️ FC cible : <b>' + Math.round(hrLow) + '–' + Math.round(hrHigh) + ' bpm</b>' +
+          (estSpeed!=null ? t('recoSpeedEstimate', {v: Math.round(estSpeed)}) : '') +
+          (estCad!=null ? t('recoCadenceEstimate', {v: Math.round(estCad)}) : '') +
+          t('recoHRTarget', {lo: Math.round(hrLow), hi: Math.round(hrHigh)}) +
           '</div>';
       } else {
-        recoHtml = '<div class="reco-title">Cible zone d\'endurance (Z2)</div>' +
-          '<div>Pas assez de paliers autour de la zone d\'endurance dans ce test pour estimer une vitesse/cadence fiable. ' +
-          'Repère utilisable dès maintenant : viser une <b>FC de ' + Math.round(hrLow) + '–' + Math.round(hrHigh) + ' bpm</b> en sortie normale. ' +
-          'Pour affiner vitesse/cadence, refaire un test avec des paliers plus progressifs (résistance début/fin plus rapprochées, plus de paliers).</div>';
+        recoHtml = '<div class="reco-title">' + t('recoZ2Title') + '</div>' +
+          '<div>' + t('recoNoData', {lo: Math.round(hrLow), hi: Math.round(hrHigh)}) + '</div>';
       }
     }
     if (thresholdStage){
       recoHtml += '<div style="margin-top:12px; padding-top:12px; border-top:1px solid #c7dbff;">' +
-        '⚠ <b>Palier de bascule détecté : Palier ' + thresholdStage.stage + '</b> (' + thresholdReason + '). ' +
-        'Au-delà de ce niveau d\'effort, on sort de l\'endurance pure — à éviter en sortie normale, réservé aux efforts ponctuels/courts.</div>';
+        t('recoThreshold', {stage: thresholdStage.stage, reason: thresholdReason}) + '</div>';
     }
     el('recoBox').innerHTML = recoHtml;
     el('recoWarnBox').innerHTML = incoherences.length
@@ -1233,12 +1830,12 @@
     // Récap profil
     const imc = profile.imc || '--';
     el('analysisProfileRecap').innerHTML =
-      '<div>Âge : <b>' + (profile.age || '--') + '</b></div>' +
-      '<div>FC max : <b>' + hrmax + '</b>' + (profileIncomplete ? ' (saisie manuelle)' : '') + '</div>' +
-      '<div>FC repos : <b>' + (hrrest || '--') + '</b></div>' +
-      '<div>IMC : <b>' + imc + '</b></div>' +
-      '<div>Paliers : <b>' + stages.length + '</b></div>' +
-      '<div>Durée totale : <b>' + fmtTime(rows.length ? Math.max(...rows.map(r=>r.t)) : 0) + '</b></div>';
+      '<div>' + t('lblAgeRecap') + ' <b>' + (profile.age || '--') + '</b></div>' +
+      '<div>' + t('lblHrMaxRecap') + ' <b>' + hrmax + '</b>' + (profileIncomplete ? ' ' + t('manualEntrySuffix') : '') + '</div>' +
+      '<div>' + t('lblHrRestRecap') + ' <b>' + (hrrest || '--') + '</b></div>' +
+      '<div>' + t('lblBmi') + ' <b>' + imc + '</b></div>' +
+      '<div>' + t('lblStagesRecap') + ' <b>' + stages.length + '</b></div>' +
+      '<div>' + t('lblTotalDuration') + ' <b>' + fmtTime(rows.length ? Math.max(...rows.map(r=>r.t)) : 0) + '</b></div>';
 
     // Temps par zone (sur toutes les lignes avec FC)
     const zoneCounts = {}; zones.forEach(z => zoneCounts[z.name] = 0);
@@ -1259,7 +1856,7 @@
     el('zoneTimeLegend').innerHTML = legendParts.join(' &nbsp;·&nbsp; ');
 
     // Tableau détaillé
-    let tableHtml = '<tr><th>Palier</th><th>FC moy.</th><th>FC max</th><th>Zone</th><th>Cadence moy.</th><th>Vitesse moy.</th><th>Résistance</th><th>RPE</th><th>Durée</th></tr>';
+    let tableHtml = `<tr><th>${t('thStage')}</th><th>${t('thHrAvg')}</th><th>${t('thHrMax')}</th><th>${t('thZone')}</th><th>${t('thCadAvg')}</th><th>${t('thSpeedAvg')}</th><th>${t('thResistance')}</th><th>${t('thRpe')}</th><th>${t('thDuration')}</th></tr>`;
     stages.forEach(s => {
       const isThreshold = thresholdStage && s.stage === thresholdStage.stage;
       tableHtml += '<tr' + (isThreshold ? ' style="background:#fff7ed;"' : '') + '>' +
@@ -1276,14 +1873,14 @@
     el('analysisTable').innerHTML = tableHtml;
 
     // Graphique
-    const labels = stages.map(s => 'Palier ' + s.stage + (thresholdStage && s.stage===thresholdStage.stage ? ' ⚠' : ''));
+    const labels = stages.map(s => t('wordStage') + ' ' + s.stage + (thresholdStage && s.stage===thresholdStage.stage ? ' ⚠' : ''));
     if (analysisChart) analysisChart.destroy();
     analysisChart = new Chart(el('analysisChart').getContext('2d'), {
       type: 'line',
       data: { labels, datasets: [
-        {label:'FC moy. (bpm)', data: stages.map(s=>s.avgHR!=null?Math.round(s.avgHR):null), borderColor:'#ef4444', backgroundColor:'rgba(239,68,68,0.08)', yAxisID:'y', tension:0.2, borderWidth:2},
-        {label:'Cadence moy. (rpm)', data: stages.map(s=>s.avgCad), borderColor:'#2563eb', backgroundColor:'rgba(37,99,235,0.06)', yAxisID:'y1', tension:0.2, borderWidth:2},
-        {label:'Vitesse moy. (km/h)', data: stages.map(s=>s.avgSpeed), borderColor:'#16a34a', backgroundColor:'rgba(22,163,74,0.06)', yAxisID:'y1', tension:0.2, borderWidth:2},
+        {label:t('chartHRAvg'), data: stages.map(s=>s.avgHR!=null?Math.round(s.avgHR):null), borderColor:'#ef4444', backgroundColor:'rgba(239,68,68,0.08)', yAxisID:'y', tension:0.2, borderWidth:2},
+        {label:t('chartCadAvg'), data: stages.map(s=>s.avgCad), borderColor:'#2563eb', backgroundColor:'rgba(37,99,235,0.06)', yAxisID:'y1', tension:0.2, borderWidth:2},
+        {label:t('chartSpeedAvg'), data: stages.map(s=>s.avgSpeed), borderColor:'#16a34a', backgroundColor:'rgba(22,163,74,0.06)', yAxisID:'y1', tension:0.2, borderWidth:2},
       ]},
       options: {
         responsive:true, maintainAspectRatio:false, interaction:{mode:'index', intersect:false},
@@ -1299,6 +1896,9 @@
     el('analysisResults').classList.remove('hidden');
   }
   let analysisChart = null;
+
+  // ---------- Init language (last, so all functions above exist) ----------
+  setLang(currentLang);
 })();
 </script>
 </body>
