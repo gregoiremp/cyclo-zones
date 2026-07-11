@@ -1,3 +1,47 @@
+# 🚴 Cyclo Zones — Progressive Cycling Effort Test
+
+> **English version below** · Version française ci-dessous
+
+A free, open-source tool to run a **structured cycling test** on a home
+trainer and derive a **concrete training target** (heart rate, speed,
+cadence) for regular rides.
+
+👉 **Use it online:** https://gregoiremp.github.io/cyclo-zones/
+
+No install, no account, no data sent to any server — everything runs in the
+browser (Chrome or Edge required for Bluetooth).
+
+The interface auto-detects your browser language (EN/FR) and can be switched
+at any time with the toggle in the top-right corner.
+
+### What it does
+
+**Live test module**
+- Connects to up to 3 Bluetooth sensors simultaneously: heart rate, cadence
+  and speed (standard BLE profiles, tested with Magene sensors on a Tacx
+  Boost trainer). Sensor type (speed vs cadence) is auto-detected on connect.
+- Configurable stage protocol (number of stages, duration, start/end
+  resistance) with automatic advancement and audio beep
+- HR zones calculated via Karvonen (%HRR) or %HRmax
+- RPE (1–10), symptom buttons with visual alert when HR nears the estimated
+  maximum
+- Live chart, per-stage summary, structured CSV export
+
+**Post-test analysis (CSV)**
+- Loads the CSV exported by the live test
+- Avg/max HR, avg cadence and speed, time in each zone
+- Threshold stage detection
+- HR/RPE incoherence detection
+- Concrete recommendation: speed/cadence/HR to target for endurance zone
+  (Z2) on normal rides, without sensors
+
+**⚠ Not a medical device.** Raw data and general training landmarks only —
+no diagnosis, no VO2max estimate. Consult a professional if you have any
+cardiac history. Stop immediately if you experience chest pain, dizziness
+or any discomfort.
+
+---
+
 # 🚴 Cyclo Zones — Test d'Effort Progressif à Vélo
 
 Outil gratuit et open-source pour faire un **test de niveau à vélo** sur home

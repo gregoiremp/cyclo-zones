@@ -3,6 +3,27 @@
 Toutes les évolutions notables du projet sont documentées ici. Chaque
 version correspond à un tag Git (`v0.1`, `v0.2`, ...) et à un commit dédié.
 
+## v0.5 — Interface bilingue, auto-détection capteurs BLE, UX Protocol
+
+- **Interface FR/EN complète** : tous les textes traduits, langue détectée
+  automatiquement depuis le navigateur (mémorisée après premier changement)
+- **Auto-détection du type de capteur BLE** : lecture de la caractéristique
+  CSC Feature (0x2A5C) pour identifier vitesse vs cadence dès la connexion,
+  watchdog 6 s en fallback, mémorisation par ID d'appareil (localStorage)
+- **Objectif palier mis à jour en temps réel** : la plage bpm s'actualise
+  immédiatement quand on modifie l'âge, FC max, FC repos ou les paramètres
+  du protocole — même sans test lancé
+- Labels de résistance `(1-10)` sur une seconde ligne (plus lisible dans
+  les steppers étroits du protocole)
+- Alignement des steppers Protocol corrigé (`align-items:flex-end` sur
+  `.row` — les boutons ±  restent à la même hauteur même si le label voisin
+  passe sur deux lignes)
+- Barre de progression palier : couleur unie bleue (suppression du dégradé
+  bleu→noir) ; récupération : gris neutre au lieu de noir
+- Champ « Circonférence roue » retiré de l'UI (valeur 2105 mm hardcodée) ;
+  hint « 3 capteurs en parallèle » et hint récupération retirés
+- Valeurs profil par défaut révisées : âge 50, poids 75 kg, FC max 170
+
 ## v0.4 — Corrections graphique et affichage de la progression
 
 - Fix du rendu du graphique (Chart.js) : conflit entre le ratio d'aspect
