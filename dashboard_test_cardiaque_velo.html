@@ -533,7 +533,7 @@
   // ==================================================================
   // ---------- i18n (FR/EN) ----------
   // ==================================================================
-  let currentLang = localStorage.getItem('lang') || 'fr';
+  let currentLang = localStorage.getItem('lang') || ((navigator.language || '').toLowerCase().startsWith('en') ? 'en' : 'fr');
 
   const I18N = {
     fr: {
