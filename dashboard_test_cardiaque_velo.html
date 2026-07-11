@@ -44,7 +44,7 @@
     color:var(--text); font-size:0.95rem; margin-top:3px;
   }
   input[type=number]:focus{outline:none; border-color:var(--accent);}
-  .row{display:flex; gap:10px;}
+  .row{display:flex; gap:10px; align-items:flex-end;}
   .row > div{flex:1;}
   .bmi-readout{font-size:0.8rem; color:var(--muted); margin-top:6px;}
   .bmi-readout b{color:var(--text);}
@@ -115,8 +115,7 @@
   .stage-seg.done .stage-seg-num, .stage-seg.current .stage-seg-num{color:#fff; text-shadow:0 1px 1px rgba(0,0,0,.25);}
   .stage-seg.current{box-shadow:0 0 0 2px var(--accent);}
 
-  .controls{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:6px;}
-  .controls button:last-child{grid-column:1/-1;}
+  .controls{display:flex; flex-wrap:wrap; gap:8px; margin-top:6px;}
 
   .rpe-row{display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;}
   .rpe-btn{
