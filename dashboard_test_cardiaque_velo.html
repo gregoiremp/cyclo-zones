@@ -97,7 +97,7 @@
   .stage-header{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px; flex-wrap:wrap; gap:8px;}
   .stage-header .big{font-size:1.8rem; font-weight:800;}
   .progress-bar{background:#eef1f7; border-radius:999px; height:18px; overflow:hidden; position:relative;}
-  .progress-fill{height:100%; background:linear-gradient(90deg,var(--z1),var(--z3),var(--z5)); width:0%; transition:width .5s linear; border-radius:999px;}
+  .progress-fill{height:100%; background:var(--accent); width:0%; transition:width .5s linear; border-radius:999px;}
   .progress-pct{
     position:absolute; top:0; left:0; right:0; height:100%; display:flex; align-items:center; justify-content:center;
     font-size:0.68rem; font-weight:800; color:#0f172a; text-shadow:0 1px 2px rgba(255,255,255,.6);
@@ -115,7 +115,8 @@
   .stage-seg.done .stage-seg-num, .stage-seg.current .stage-seg-num{color:#fff; text-shadow:0 1px 1px rgba(0,0,0,.25);}
   .stage-seg.current{box-shadow:0 0 0 2px var(--accent);}
 
-  .controls{display:flex; flex-wrap:wrap; gap:8px; margin-top:6px;}
+  .controls{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:6px;}
+  .controls button:last-child{grid-column:1/-1;}
 
   .rpe-row{display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;}
   .rpe-btn{
@@ -307,8 +308,6 @@
           </div>
         </div>
       </div>
-      <div class="hint" style="margin-top:6px;" data-i18n="hintRecovery">Phase de retour au calme après le dernier palier (ou déclenchée
-        manuellement) : résistance très basse, pédalage libre, pour mesurer la récupération cardiaque.</div>
     </div>
 
     <div class="card">
@@ -322,11 +321,6 @@
       <div class="sensor-row"><span><span class="status-dot" id="speedDot"></span><span data-i18n="sensorSpeed">Vitesse (Magene)</span></span>
         <button class="btn-connect" id="btnConnectSpeed" data-i18n="btnConnect">Connecter</button></div>
       <div class="sensor-hint" id="speedSensorHint"></div>
-      <label data-i18n="lblWheelCirc">Circonférence roue (mm)</label>
-      <input type="number" id="wheelCirc" value="2105" min="1500" max="2500">
-      <div class="hint" data-i18n="hintSensors">Les 3 capteurs se connectent en parallèle, indépendamment (3 connexions Bluetooth
-        distinctes). Chrome/Edge desktop ou Android requis. Sélectionne bien le bon appareil dans chaque
-        fenêtre d'appairage.</div>
       <div class="hint" data-i18n="hintSensorTip">Astuce : si tu as plusieurs capteurs Magene, connecte-les un par un — éloigne ou
         éteins ceux que tu ne connectes pas encore, sinon Chrome les affiche tous avec des noms illisibles
         (souvent juste un numéro de série) et impossibles à distinguer. L'appli essaie de détecter
@@ -336,15 +330,15 @@
     <div class="card">
       <h2 data-i18n="cardProfile">Profil</h2>
       <div class="row">
-        <div><label data-i18n="lblAge">Âge</label><input type="number" id="age" value="65" min="10" max="100"></div>
-        <div><label data-i18n="lblWeight">Poids (kg)</label><input type="number" id="weight" value="80" min="20" max="200"></div>
+        <div><label data-i18n="lblAge">Âge</label><input type="number" id="age" value="50" min="10" max="100"></div>
+        <div><label data-i18n="lblWeight">Poids (kg)</label><input type="number" id="weight" value="75" min="20" max="200"></div>
       </div>
       <div class="row">
         <div><label data-i18n="lblHeight">Taille (cm)</label><input type="number" id="height" value="175" min="100" max="230"></div>
         <div><label data-i18n="lblHrRest">FC repos (optionnel)</label><input type="number" id="hrrest" value="" min="30" max="120" placeholder="bpm"></div>
       </div>
       <label data-i18n="lblHrMax">FC max (calculée, éditable)</label>
-      <input type="number" id="hrmax" value="155" min="80" max="230">
+      <input type="number" id="hrmax" value="170" min="80" max="230">
       <div class="bmi-readout"><span data-i18n="lblBmi">IMC :</span> <b id="bmiValue">--</b></div>
     </div>
   </div>
@@ -914,7 +908,8 @@
   const ageInput=el('age'), weightInput=el('weight'), heightInput=el('height'), hrrestInput=el('hrrest'), hrmaxInput=el('hrmax');
   const numStagesInput=el('numStages'), stageDurationInput=el('stageDuration');
   const resStartInput=el('resStart'), resEndInput=el('resEnd'), resInput=el('resInput');
-  const autoAdvanceInput=el('autoAdvance'), wheelCircInput=el('wheelCirc');
+  const autoAdvanceInput=el('autoAdvance');
+  const WHEEL_CIRC_MM = 2105;
   const recoveryDurationInput=el('recoveryDuration'), recoveryResistanceInput=el('recoveryResistance');
 
   ageInput.addEventListener('input', () => { hrmaxInput.value = Math.round(220 - Number(ageInput.value || 0)); });
@@ -1203,7 +1198,7 @@
       let dTime = wheelTime - lastWheelTime; if (dTime<0) dTime += 65536;
       if (dTime > 0){
         const seconds = dTime/1024;
-        const distM = dRevs * (Number(wheelCircInput.value||2105)/1000);
+        const distM = dRevs * (WHEEL_CIRC_MM/1000);
         currentSpeed = (distM/seconds)*3.6;
         updateSpeedDisplay();
       }
@@ -1283,7 +1278,7 @@
       el('recoveryTimer').textContent = fmtTime(remaining);
       const pct = Math.min(100, (recoveryElapsedSec/recDurationSec)*100);
       el('stageProgress').style.width = pct + '%';
-      el('stageProgress').style.background = '#111111';
+      el('stageProgress').style.background = '#9ca3af';
       el('stageProgressPct').textContent = Math.round(pct) + '%';
       el('recoveryStartHRLabel').textContent = recoveryStartHR!=null ? recoveryStartHR : '--';
       if (recoveryStartHR!=null && currentHR!=null){
