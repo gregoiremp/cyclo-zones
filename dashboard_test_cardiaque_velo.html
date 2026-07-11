@@ -911,7 +911,9 @@
   const WHEEL_CIRC_MM = 2105;
   const recoveryDurationInput=el('recoveryDuration'), recoveryResistanceInput=el('recoveryResistance');
 
-  ageInput.addEventListener('input', () => { hrmaxInput.value = Math.round(220 - Number(ageInput.value || 0)); });
+  ageInput.addEventListener('input', () => { hrmaxInput.value = Math.round(220 - Number(ageInput.value || 0)); refreshStagePanel(); });
+  [hrmaxInput, hrrestInput].forEach(i => i.addEventListener('input', () => refreshStagePanel()));
+  [numStagesInput, resStartInput, resEndInput].forEach(i => i.addEventListener('input', () => refreshStagePanel()));
   [weightInput, heightInput].forEach(i => i.addEventListener('input', updateBMI));
   function updateBMI(){
     const w = Number(weightInput.value), h = Number(heightInput.value)/100;
