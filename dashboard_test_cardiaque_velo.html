@@ -25,7 +25,7 @@
     margin:0; border-radius:0; padding:8px 14px; font-size:0.78rem; font-weight:700; background:transparent; color:var(--muted);
   }
   .lang-btn.active{background:var(--accent); color:white;}
-  .subtitle{color:var(--muted); font-size:0.85rem; margin-top:2px;}
+  .subtitle{color:var(--muted); font-size:0.75rem; margin-top:2px;}
   .banner{
     background:var(--accent-light); border:1px solid #c7dbff; color:#1d4ed8; padding:10px 14px;
     border-radius:10px; font-size:0.82rem; margin-bottom:16px; line-height:1.45;
@@ -77,7 +77,13 @@
   .sensor-hint.ok{color:var(--ok);}
   .status-dot{display:inline-block; width:8px; height:8px; border-radius:50%; background:#cbd5e1; margin-right:8px;}
   .status-dot.on{background:var(--ok);}
-  .hint{font-size:0.72rem; color:var(--muted); margin-top:6px; line-height:1.4;}
+  .hint{font-size:0.65rem; color:var(--muted); margin-top:6px; line-height:1.4;}
+
+  .tooltip-wrap{position:relative; display:inline-flex; align-items:center; gap:4px;}
+  .tooltip-wrap .tip-icon{display:inline-flex; align-items:center; justify-content:center; width:14px; height:14px; border-radius:50%; background:var(--muted); color:#fff; font-size:0.6rem; font-weight:700; cursor:default; flex-shrink:0; opacity:0.7;}
+  .tooltip-wrap .tip-box{display:none; position:absolute; bottom:calc(100% + 6px); left:50%; transform:translateX(-50%); background:#1e293b; color:#f1f5f9; font-size:0.65rem; padding:5px 8px; border-radius:6px; white-space:nowrap; z-index:100; pointer-events:none; line-height:1.4;}
+  .tooltip-wrap .tip-box::after{content:''; position:absolute; top:100%; left:50%; transform:translateX(-50%); border:5px solid transparent; border-top-color:#1e293b;}
+  .tooltip-wrap:hover .tip-box{display:block;}
 
   .metrics-grid{display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:16px;}
   @media(max-width:1300px){.metrics-grid{grid-template-columns:repeat(3,1fr);}}
@@ -315,13 +321,13 @@
       <div class="sensor-row"><span><span class="status-dot" id="hrDot"></span><span data-i18n="sensorHR">Fréquence cardiaque</span></span>
         <button class="btn-connect" id="btnConnectHR" data-i18n="btnConnect">Connecter</button></div>
       <div class="sensor-hint" id="hrSensorHint"></div>
-      <div class="sensor-row"><span><span class="status-dot" id="cadDot"></span><span data-i18n="sensorCadence">Cadence (Magene)</span></span>
+      <div class="sensor-row"><span><span class="status-dot" id="cadDot"></span><span data-i18n="sensorCadence">Cadence</span></span>
         <button class="btn-connect" id="btnConnectCad" data-i18n="btnConnect">Connecter</button></div>
       <div class="sensor-hint" id="cadSensorHint"></div>
-      <div class="sensor-row"><span><span class="status-dot" id="speedDot"></span><span data-i18n="sensorSpeed">Vitesse (Magene)</span></span>
+      <div class="sensor-row"><span><span class="status-dot" id="speedDot"></span><span data-i18n="sensorSpeed">Vitesse</span></span>
         <button class="btn-connect" id="btnConnectSpeed" data-i18n="btnConnect">Connecter</button></div>
       <div class="sensor-hint" id="speedSensorHint"></div>
-      <div class="hint" data-i18n="hintSensorTip">Astuce : si tu as plusieurs capteurs Magene, connecte-les un par un — éloigne ou
+      <div class="hint" data-i18n="hintSensorTip">Astuce : si tu as plusieurs capteurs Bluetooth, connecte-les un par un — éloigne ou
         éteins ceux que tu ne connectes pas encore, sinon Chrome les affiche tous avec des noms illisibles
         (souvent juste un numéro de série) et impossibles à distinguer. L'appli essaie de détecter
         automatiquement le vrai type du capteur une fois connecté et te prévient en cas d'erreur.</div>
@@ -379,7 +385,7 @@
       </div>
       <div class="metric-card">
         <div class="metric-value" id="resValue">--</div>
-        <div class="metric-label" data-i18n="metricResistance">Résistance /10</div>
+        <div class="metric-label"><span class="tooltip-wrap"><span data-i18n="metricResistance">Résistance /10</span><span class="tip-icon">?</span><span class="tip-box" data-i18n="tipResistance">Résistance du home trainer (1 = très facile, 10 = max)</span></span></div>
       </div>
       <div class="metric-card">
         <div class="metric-value" id="rpeValue">--</div>
@@ -555,8 +561,8 @@
       hintRecovery: "Phase de retour au calme après le dernier palier (ou déclenchée manuellement) : résistance très basse, pédalage libre, pour mesurer la récupération cardiaque.",
       cardSensors: "Capteurs Bluetooth",
       sensorHR: "Fréquence cardiaque",
-      sensorCadence: "Cadence (Magene)",
-      sensorSpeed: "Vitesse (Magene)",
+      sensorCadence: "Cadence",
+      sensorSpeed: "Vitesse",
       lblWheelCirc: "Circonférence roue (mm)",
       hintSensors: "Les 3 capteurs se connectent en parallèle, indépendamment (3 connexions Bluetooth distinctes). Chrome/Edge desktop ou Android requis. Sélectionne bien le bon appareil dans chaque fenêtre d'appairage.",
       cardProfile: "Profil",
@@ -582,6 +588,7 @@
       metricCadence: "Cadence (rpm)",
       metricSpeed: "Vitesse (km/h)",
       metricResistance: "Résistance /10",
+      tipResistance: "Résistance du home trainer (1 = très facile, 10 = max)",
       metricRPE: "Ressenti (RPE)",
       wordStage: "Palier",
       wordRecoveryBig: "Récupération",
@@ -646,7 +653,7 @@
       bleGenericError: "Connexion {sensor} impossible. Réessaie.",
       hrrPrefix: "Récupération cardiaque depuis {hr} bpm : ",
       hrrSegment: "{d}s → {hr} bpm ({delta})",
-      hintSensorTip: "Astuce : si tu as plusieurs capteurs Magene, connecte-les un par un — éloigne ou éteins ceux que tu ne connectes pas encore, sinon Chrome les affiche tous avec des noms illisibles (souvent juste un numéro de série) et impossibles à distinguer. L'appli essaie de détecter automatiquement le vrai type du capteur une fois connecté et te prévient en cas d'erreur.",
+      hintSensorTip: "Astuce : si tu as plusieurs capteurs Bluetooth, connecte-les un par un — éloigne ou éteins ceux que tu ne connectes pas encore, sinon Chrome les affiche tous avec des noms illisibles (souvent juste un numéro de série) et impossibles à distinguer. L'appli essaie de détecter automatiquement le vrai type du capteur une fois connecté et te prévient en cas d'erreur.",
       sensorLabel_speed: "vitesse", sensorLabel_cadence: "cadence", sensorLabel_hr: "FC",
       sensorRememberedMismatch: "⚠ Ce capteur avait déjà été identifié comme capteur de {type} — vérifie que c'est le bon.",
       sensorConfirmedCadence: "✓ Type confirmé : capteur de cadence.",
@@ -700,8 +707,8 @@
       hintRecovery: "Cool-down phase after the last stage (or triggered manually): very low resistance, free pedaling, to measure heart-rate recovery.",
       cardSensors: "Bluetooth sensors",
       sensorHR: "Heart rate",
-      sensorCadence: "Cadence (Magene)",
-      sensorSpeed: "Speed (Magene)",
+      sensorCadence: "Cadence",
+      sensorSpeed: "Speed",
       lblWheelCirc: "Wheel circumference (mm)",
       hintSensors: "The 3 sensors connect in parallel, independently (3 separate Bluetooth connections). Chrome/Edge desktop or Android required. Make sure to pick the right device in each pairing window.",
       cardProfile: "Profile",
@@ -727,6 +734,7 @@
       metricCadence: "Cadence (rpm)",
       metricSpeed: "Speed (km/h)",
       metricResistance: "Resistance /10",
+      tipResistance: "Home trainer resistance (1 = very easy, 10 = max)",
       metricRPE: "Perceived effort (RPE)",
       wordStage: "Stage",
       wordRecoveryBig: "Recovery",
@@ -792,7 +800,7 @@
       hrrPrefix: "Heart-rate recovery from {hr} bpm: ",
       hrrSegment: "{d}s → {hr} bpm ({delta})",
       hrrIncomplete: "Incomplete recovery (less than 30s recorded).",
-      hintSensorTip: "Tip: if you have several Magene sensors, pair them one at a time — move away or switch off the ones you're not pairing yet, otherwise Chrome shows them all with unreadable names (often just a serial number) and no way to tell them apart. The app tries to auto-detect the real sensor type once connected and warns you if something's off.",
+      hintSensorTip: "Tip: if you have several Bluetooth sensors, pair them one at a time — move away or switch off the ones you're not pairing yet, otherwise Chrome shows them all with unreadable names (often just a serial number) and no way to tell them apart. The app tries to auto-detect the real sensor type once connected and warns you if something's off.",
       sensorLabel_speed: "speed", sensorLabel_cadence: "cadence", sensorLabel_hr: "HR",
       sensorRememberedMismatch: "⚠ This sensor was previously identified as a {type} sensor — double-check it's the right one.",
       sensorConfirmedCadence: "✓ Type confirmed: cadence sensor.",
